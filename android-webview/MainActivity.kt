@@ -1,4 +1,6 @@
 /*
+ * ...MyWebviewApplication\app\src\main\java\com\example\mywebviewapplication
+ *
  * basics
  * https://developer.chrome.com/docs/multidevice/webview/gettingstarted/
  * https://developer.android.com/studio/run/managing-avds?utm_source=android-studio
