@@ -1,3 +1,14 @@
+# start project:
+# https://www.mfitzp.com/tutorials/packaging-pyqt5-pyside2-applications-windows-pyinstaller/
+# install pyinstaller
+# set venv: python -m venv venv
+# activate venv: venv\Scripts\activate
+# install gui stuff
+# -> python -m pip install PyQt5 PyInstaller
+# -> python -m pip install PySide2 PyInstaller
+# build project:
+# pyinstaller <py>.spec --noconsole --onefile
+
 from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets, QtWebChannel
 
 class Backend(QtCore.QObject):
