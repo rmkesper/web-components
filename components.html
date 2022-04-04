@@ -2267,7 +2267,7 @@ class RippleEffect {
 	rippleScaleEnd = 3
 	rippleOpacityStart = 0.2
 	rippleOpacityEnd = 0
-	rippleAniDuration = 1.35 //in s!
+	rippleAniDuration = 1 //in s!
 	add() {
 		let self = this;
 		let _ = new RippleEffect;
@@ -2297,13 +2297,6 @@ class RippleEffect {
 			background-position-x: calc(var(--rpl-dx) - var(--rpl-max) * var(--rpl-scl-start) / 2);
 			background-position-y: calc(var(--rpl-dy) - var(--rpl-max) * var(--rpl-scl-start) / 2);
 			}
-			50% {
-			opacity: calc( ( var(--rpl-opacity-start) - var(--rpl-opacity-end) ) / 2 );
-			transform: translate3d(0, 0, 0);
-			background-size: calc(var(--rpl-max) * ( ( var(--rpl-scl-end) - var(--rpl-scl-start) ) / 2 ) ) calc(var(--rpl-max) * ( ( var(--rpl-scl-end) - var(--rpl-scl-start) ) / 2 ));
-			background-position-x: calc(var(--rpl-dx) - var(--rpl-max) * ( ( var(--rpl-scl-end) - var(--rpl-scl-start) ) / 2 ) / 2);
-			background-position-y: calc(var(--rpl-dy) - var(--rpl-max) * ( ( var(--rpl-scl-end) - var(--rpl-scl-start) ) / 2 ) / 2);
-			}
 			100% {
 			opacity:var(--rpl-opacity-end);
 			transform: translate3d(0, 0, 0);
@@ -2332,7 +2325,7 @@ class RippleEffect {
 			border-bottom-left-radius:var(--rpl-border-bl-radius);
 			border-bottom-right-radius:var(--rpl-border-br-radius);
 			background-image: var(--rpl-url);
-			animation: ${_.rippleAnimationsName} var(--rpl-ani-duration) var(--rpl-ani-state) forwards;
+			animation: ${_.rippleAnimationsName} var(--rpl-ani-duration) var(--rpl-ani-state) linear forwards;
 			}`
 			head.appendChild(style)
 			style.setAttribute("id", _.rippleStyleHolder);
