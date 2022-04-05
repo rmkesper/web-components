@@ -22,20 +22,20 @@ class ToolTip {
 				t.classList.add("tooltip-add")
 				t.setAttribute("data-tip-id", "_" + (new Date()).getTime() + Math.floor(Math.random()*9999))
 				t.title=""
-				t.addEventListener("mouseenter", function(){ self.create.call(self) }, false )
-				t.addEventListener("touchstart", function(){ self.create.call(self) }, false )
+				t.addEventListener("mouseenter", function(){ self.create.call(self, event) }, false )
+				t.addEventListener("touchstart", function(){ self.create.call(self, event) }, false )
 				t.addEventListener("mouseleave", self.rm)
 				t.addEventListener("touchend", self.rm)
 			}
 		}
 	}
-	rm() {
+	rm(event) {
 		let e = event.target
 		if(document.getElementById(e.getAttribute("data-tip-id"))) {
 			document.getElementById(e.getAttribute("data-tip-id")).remove()
 		}
 	}
-	create() {
+	create(event) {
 		let _css = this.css
 		let e = event.target
 		let attr = e.getAttribute("data-tip")
