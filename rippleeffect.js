@@ -56,7 +56,7 @@ class RippleEffect {
 			}}
 			.${_.rippleCSSName}::before{
 			content: "";
-			z-index: -1;
+			z-index: 0;
 			position: absolute;
 			transform-origin: center;
 			backface-visibility: hidden;
