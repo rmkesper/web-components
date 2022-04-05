@@ -11,11 +11,15 @@ class ToolTip {
 		let htmlCls = html.getAttribute("class")
 		let tipadd = "tooltip-add"
 		if(html && (!htmlCls || (htmlCls && htmlCls.indexOf(tipadd)<0)) ) {
-			document.addEventListener("mousedown", () => (new ToolTip()).add());
-			document.addEventListener("touchstart", () => (new ToolTip()).add());
-			(new MutationObserver(function() {
-				(new ToolTip()).add()
-			})).observe(document.body, { attributes: true, childList: true, characterData: true })
+			(new MutationObserver(function(mutations) {
+				let mutate = false;
+				for(let mutation of mutations) 
+					if(mutation.oldValue !== mutation.target.textContent) {
+						mutate = true;
+						break;
+					}
+				if (mutate) (new ToolTip()).add()
+			})).observe(document.body, { characterDataOldValue: true, subtree: true, childList: true, characterData: true })
 			if(!htmlCls) html.setAttribute("class", tipadd)
 			else html.setAttribute("class", htmlCls + ' ' + tipadd)
 		}
