@@ -13,6 +13,9 @@ class ToolTip {
 		if(html && (!htmlCls || (htmlCls && htmlCls.indexOf(tipadd)<0)) ) {
 			document.addEventListener("mousedown", () => (new ToolTip()).add())
 			document.addEventListener("touchstart", () => (new ToolTip()).add())
+			(new MutationObserver(function() {
+				(new ToolTip()).add()
+			})).observe(document.body, { attributes: true, childList: true, characterData: true })
 			if(!htmlCls) html.setAttribute("class", tipadd)
 			else html.setAttribute("class", htmlCls + ' ' + tipadd)
 		}
