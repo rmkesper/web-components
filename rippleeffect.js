@@ -4,7 +4,7 @@
  */
 class RippleEffect {
 	rippleName = 'ripple' // provide additional properties like "ripple[<color>|<duration>|<opacityStart>|<scaleRippleEnd>]" in class name
-	rippleNameDisableParentEffect = 'unripple' // if this class is contained in a child element, the parent does not ripple
+	rippleNameDisableParentEffect = 'unrip' // if this class is contained in a child element, the parent does not ripple
 	rippleCSSName = 'ani_expand'
 	rippleStyleHolder = 'rpl-frame'
 	rippleAnimationsName = 'bg_ani_rpl';
@@ -56,7 +56,7 @@ class RippleEffect {
 			}}
 			.${_.rippleCSSName}::before{
 			content: "";
-			z-index: 0;
+			z-index: -1;
 			position: absolute;
 			transform-origin: center;
 			backface-visibility: hidden;
