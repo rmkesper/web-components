@@ -21,11 +21,15 @@ class RippleEffect {
 		let htmlCls = html.getAttribute("class")
 		let rpladd = "rpleff-add"
 		if(html && (!htmlCls || (htmlCls && htmlCls.indexOf(rpladd)<0)) ) {
-			document.addEventListener("mousedown", () => (new RippleEffect()).add());
-			document.addEventListener("touchstart", () => (new RippleEffect()).add());
-			(new MutationObserver(function() {
-				(new RippleEffect()).add()
-			})).observe(document.body, { attributes: true, childList: true, characterData: true })
+			(new MutationObserver(function(mutations) {
+				let mutate = false;
+				for(let mutation of mutations) 
+					if(mutation.oldValue !== mutation.target.textContent) {
+						mutate = true;
+						break;
+					}
+				if (mutate) (new RippleEffect()).add()
+			})).observe(document.body, { characterDataOldValue: true, subtree: true, childList: true, characterData: true })
 			if(!htmlCls) html.setAttribute("class", rpladd)
 			else html.setAttribute("class", htmlCls + ' ' + rpladd)
 			
