@@ -9,7 +9,7 @@ class ToolTip {
 		let self = this
 		let html = document.querySelector("html")
 		let htmlCls = html.getAttribute("class")
-		let tipadd = "tltip-add"
+		let tipadd = "tooltip-add"
 		if(html && (!htmlCls || (htmlCls && htmlCls.indexOf(tipadd)<0)) ) {
 			document.addEventListener("mousedown", () => (new ToolTip()).add())
 			document.addEventListener("touchstart", () => (new ToolTip()).add())
@@ -18,8 +18,8 @@ class ToolTip {
 		}
 		let ts = document.querySelectorAll('[data-tip]')
 		for(let t of ts) {
-			if(!t.classList.contains("tooltip-add")) {
-				t.classList.add("tooltip-add")
+			if(!t.classList.contains(tipadd)) {
+				t.classList.add(tipadd)
 				t.setAttribute("data-tip-id", "_" + (new Date()).getTime() + Math.floor(Math.random()*9999))
 				t.title=""
 				t.addEventListener("mouseenter", function(){ self.create.call(self, event) }, false )
@@ -39,6 +39,7 @@ class ToolTip {
 		let _css = this.css
 		let e = event.target
 		let attr = e.getAttribute("data-tip")
+		if(attr.length===0) return
 		let txt = attr.charAt(0) === "#" ? document.getElementById(attr.substr(1))?.innerHTML : attr
 		let id = e.getAttribute("data-tip-id")
 		if(document.getElementById(id)) {
