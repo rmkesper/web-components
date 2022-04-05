@@ -52,7 +52,7 @@ class RippleEffect {
 			}}
 			.${_.rippleCSSName}::before{
 			content: "";
-			z-index: -1;
+			z-index: 0;
 			position: absolute;
 			transform-origin: center;
 			backface-visibility: hidden;
@@ -200,8 +200,7 @@ class RippleEffect {
 		setTimeout( () => {
 			p.style.setProperty('--rpl-scl-start', 0)
 			if((p.getAttribute("data-rpl-end") === "true")) {
-				if(document.getElementById(id)) 
-					n.remove()
+				n.remove()
 			}
 		}, rippleDuration * 1000 )
 	}
