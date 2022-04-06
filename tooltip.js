@@ -18,7 +18,7 @@ class ToolTip {
 						mutate = true;
 						break;
 					}
-				if (mutate) (new ToolTip()).add()
+				if (mutate) (new ToolTip()).add(css)
 			})).observe(document.body, { characterDataOldValue: true, subtree: true, childList: true, characterData: true })
 			if(!htmlCls) html.setAttribute("class", tipadd)
 			else html.setAttribute("class", htmlCls + ' ' + tipadd)
