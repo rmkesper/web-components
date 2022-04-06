@@ -28,7 +28,6 @@ class ToolTip {
 			if(!t.classList.contains(tipadd)) {
 				t.classList.add(tipadd)
 				t.setAttribute("data-tip-id", "_" + (new Date()).getTime() + Math.floor(Math.random()*9999))
-				t.title=""
 				t.addEventListener("mouseenter", function(){ self.create.call(self, event) }, false )
 				t.addEventListener("touchstart", function(){ self.create.call(self, event) }, false )
 				t.addEventListener("mouseleave", self.rm)
@@ -73,6 +72,7 @@ class ToolTip {
 		n.style.setProperty("top", 0 + "px")
 		n.style.setProperty("left", 0 + "px")
 		n.style.setProperty("width", "fit-content")
+		n.style.setProperty("z-index", "999999")
 		let nw = n.getBoundingClientRect().width
 		let nh = n.getBoundingClientRect().height
 		let _x = x
