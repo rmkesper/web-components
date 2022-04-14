@@ -44,13 +44,15 @@
 				<div class="underline mr-12 opacity-50 hover:opacity-75 cursor-pointer" onclick="download()">download</div>
 			</div>
 			
-			<div class="m-12 flex items-center"
+			<pre class="ml-12 my-8">&lt;slider-toggle [...]>&lt;/slider-toggle></pre>
+			
+			<div class="ml-12 my-4 flex items-center"
 					 v-on:click="slider1 = !slider1">
 				<slider-toggle v-bind:active="slider1"></slider-toggle>
 				<span class="ml-4">Slider {{slider1 ? 'en' : 'dis'}}abled</span>
 			</div>
 			
-			<div class="m-12 flex items-center"
+			<div class="ml-12 my-8 flex items-center"
 					 v-on:click="slider2 = !slider2">
 				<slider-toggle class="text-[24px]" 
 											 v-bind:css="'bg-yellow-400'"
