@@ -390,6 +390,7 @@
 					selm = this.months[m-1]
 					let w = (new Date(m+"/1/"+ sely )).getDay()
 					start = w-1
+					if(start<0) start = 6
 					this[ (!this.startDSel && this.startYSel ? 'selM' : 'selEndM') ] = selm
 					this[ (!this.startDSel && this.startYSel ? 'selY' : 'selEndY') ] = sely
 					
@@ -412,7 +413,7 @@
 						let isAct = false
 						let dt;
 						if(this.pickerViewInd===1) {
-							dt = k >= start && dInd===0 || dInd>0 && this.validateDtStr(m+'/'+dInd+'/'+sely) ? dInd : -1
+							dt = (k >= start && dInd===0) || (dInd>0 && this.validateDtStr(m+'/'+dInd+'/'+sely)) ? dInd : -1
 							selected = 
 								(dt === this.crntD && this.months[m-1] === this.crntM && this.crntY === sely)
 								||
@@ -436,7 +437,7 @@
 								this.crntDelta = unixTo - unixFrom
 								inRange = unixCrnt > unixFrom && unixCrnt < unixTo && available//&& this.months[m-1] === (!this.startYSel ? this.selM : this.selEndM)
 							}
-							dInd++
+							if(k >= start) dInd++
 						} else {
 							dt = start+k
 							isAct = this.actY === dt
@@ -466,6 +467,15 @@
 						}
 						a[j] = {item: dt, inRange: inRange, selected: selected, available: available && dt>0, isStart: isStart, isEnd: isEnd, actual: isAct}
 					}
+				}
+				// remove empty rows on the beginning
+				for(let i in v){
+					let r = v[i]
+					let empty = true
+					for(let c of r){
+						if(c.item>0) empty = false
+					}
+					if(empty) v.splice(i,1)
 				}
 				this.pickerViewData = v
 			},
