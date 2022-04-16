@@ -131,7 +131,7 @@
 					</button>
 				</div>
 				<input-area class="transform transition-all" 
-										v-bind:class="{'w-96': pickerRanged && pickerHours, 'w-56': !pickerRanged && !pickerHours, 'w-80': !pickerRanged && pickerHours}"
+										v-bind:class="{'w-96': pickerRanged && pickerHours, 'w-56': !pickerRanged && !pickerHours, 'w-80': (!pickerRanged && pickerHours) || (pickerRanged && !pickerHours)}"
 										id="inp_sm"
 										v-bind:label="'Select Date' + (pickerRanged ? ' Range' : '')"
 										v-bind:error="''"
@@ -149,6 +149,7 @@
 														 v-bind:allowedPickerRange="pickerAllowedRange"
 														 v-bind:hours="pickerHours"
 														 v-bind:ranged="pickerRanged"
+														 v-bind:css="'bg-sky-500'"
 														 @validate="validatePicker"
 														 @select="getPickerDt"
 														 @toggle="togglePickr"></dropdown-datepicker>
@@ -166,6 +167,7 @@
 			ranged: { default() { return typeof this.$attrs.ranged  !== "undefined" ? this.$attrs.ranged : false } },
 			valid: { default() { return typeof this.$attrs.valid !== "undefined" ? this.$attrs.valid : null } },
 			hours: { default() { return typeof this.$attrs.hours !== "undefined" ? this.$attrs.hours : false } },
+			css: { default() { return this.$attrs.css ?? "bg-black dark:bg-white"} },
 		},
 		watch: {
 			'$attrs.pickervisible': function(n,o) {
@@ -189,6 +191,7 @@
 				this.setPickerView()
 			},
 			'$attrs.allowedpickerrange': function(n,o) { this.allowedPickerRange = n },
+			'$attrs.css': function(n,o) { this.css = n },
 		},
 		data: () => ({
 			inpComp: null,
@@ -759,6 +762,7 @@
 					))
 				if(setInput) this.inputValue = this.crntPickerDt + (this.ranged ? ' - ' +  this.crntEndPickerDt : '')
 				//else this.inputValue = ""
+				this.yearSetIncr = 0
 				this.$emit("select", this.inputValue)
 				this.parsePickerDt()
 			},
@@ -785,7 +789,10 @@
 					else this.yearIncr++
 				} else {
 					if(direction === 0) this.yearSetIncr--
-					else this.yearSetIncr++
+					else {
+						if(this.actY - 6 - (this.monthIncr * 4 * 6) - (( 4 * 6)) * (this.yearSetIncr) > 0) // prevent v. Chr. years
+							this.yearSetIncr++
+					}
 				}
 				this.setPickerView()
 				this.yearIncr=0
@@ -889,7 +896,7 @@
 									 'flex-auto' : pickerViewInd!==1}">
 								<div class="h-full w-1/2"
 										 v-bind:class="{
-										 'bg-black/10 dark:bg-white/10': (item.inRange || (item.isEnd && crntDelta>0)) && ranged && !startDSel,
+										 [css + ' opacity-50']: (item.inRange || (item.isEnd && crntDelta>0)) && ranged && !startDSel,
 										 'border-t border-b border-dashed border-black dark:border-white': 
 											(item.inRange || (item.isEnd && crntDelta>0)) && ranged && startDSel 
 											&& ( (item.item !== selY && item.item !== selEndY) || 
@@ -898,33 +905,33 @@
 								<div v-show="item.item>0" 
 										 v-bind:class="{
 										 'ring-offset-1 ring-1 ring-black dark:ring-white':item.actual, 
-										 'bg-black/20 dark:bg-white/20': item.selected && item.available, 
-										 'hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-sm cursor-pointer': item.item>0 && item.available,
+										 'hover:bg-black/20 dark:hover:bg-white/20 transition-colors text-sm cursor-pointer': item.item>0 && item.available,
 										 'w-8 -ml-8 transform translate-x-4' : pickerViewInd===1,
 										 'w-12 -ml-12 transform translate-x-6' : pickerViewInd!==1,
 										 'h-8' : pickerViewInd!==2,
 										 'h-10' : pickerViewInd===2,
 										 }"
-										 class="rounded-full flex flex-col items-center justify-center">
+										 class="z-10 rounded-full flex flex-col items-center justify-center">
+									<div class="w-full h-full rounded-full absolute opacity-100 z-[-1]" v-bind:class="{[css]:item.selected && item.available}"></div>
 									<div class="flex flex-row h-full w-full">
 										<div class="h-full w-1/2 rounded-l-full" 
 												 v-bind:class="{
-												 'bg-black/10 dark:bg-white/10': item.isStart && crntDelta>0 && ranged && !startDSel,
+												 [css + ' opacity-50']: item.isStart && crntDelta>0 && ranged && !startDSel,
 												 'border-t border-b border-l border-dashed border-black dark:border-white': item.isStart && crntDelta>0 && ranged && startDSel,
 												 }"></div>
 										<div class="h-full w-1/2 rounded-r-full"
 												 v-bind:class="{
-												 'bg-black/10 dark:bg-white/10': item.isEnd && crntDelta>0 && ranged && !startDSel,
+												 [css + ' opacity-50']: item.isEnd && crntDelta>0 && ranged && !startDSel,
 												 'border-t border-b border-r border-dashed border-black dark:border-white': item.isEnd && crntDelta>0 && ranged && startDSel,
 												 }"></div>
 									</div>
-									<div class="w-full h-full flex items-center justify-center" 
+									<div class="w-full h-full flex items-center justify-center z-20" 
 											 v-bind:class="{[pickerViewInd===2 ? '-mt-10' : '-mt-8']: true}"
 											 v-text="item.itemStr ? item.itemStr : (item.item > 0 ? item.item : '')"></div>
 								</div>
 								<div class="h-full w-1/2"
 										 v-bind:class="{
-										 'bg-black/10 dark:bg-white/10': (item.inRange || (item.isStart && crntDelta>0)) && ranged && !startDSel,
+										 [css + ' opacity-50']: (item.inRange || (item.isStart && crntDelta>0)) && ranged && !startDSel,
 										 'border-t border-b border-dashed border-black dark:border-white': 
 											(item.inRange || (item.isStart && crntDelta>0)) && ranged && startDSel 
 											&& ( (item.item !== selY && item.item !== selEndY) || 
