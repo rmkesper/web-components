@@ -124,21 +124,23 @@
 				</div>
 				<input-area class=" w-96" 
 										id="inp_sm"
-										v-bind:label="'Select Date Range'"
+										v-bind:label="'Select Date' + (pickerRanged ? ' Range' : '')"
 										v-bind:error="''"
 										v-bind:hint="''"
 										v-bind:iconPrefix1="tglpk"
 										v-bind:inputValue="inpPicker"
 										v-bind:theme="' fill'"
-										v-bind:isRequired="'true'"
+										v-bind:isRequired="true"
 										v-bind:isValid="isPickerValid"
-										@keyup="validateInp"
+										@keyup="getPickerDt"
 										@prefix1="togglePickr"></input-area>
 				<dropdown-datepicker v-bind:pickerVisible="pickerVis"
 														 v-bind:inputValue="inpPicker"
 														 v-bind:inputArea="inp_sm"
-														 v-bind:allowedPickerRange="'3/2/2018 - 5/12/2022'"
-														 v-bind:hours="true"
+														 v-bind:allowedPickerRange="pickerAllowedRange"
+														 v-bind:hours="pickerHours"
+														 v-bind:ranged="pickerRanged"
+														 @validate="validatePicker"
 														 @select="getPickerDt"
 														 @toggle="togglePickr"></dropdown-datepicker>
 			</div>
@@ -148,11 +150,13 @@
 	<script>
 	Vue.component('dropdown-datepicker', {
 		props: {
-			pickerVisible: { default() { return this.$attrs.pickervisible ?? false } },
-			inputArea: { default() { return this.$attrs.inputarea ?? ""} },
-			inputValue: { default() { return this.$attrs.inputvalue ?? ""} },
-			hours: { default() { return typeof this.$attrs.hours !== "undefined" ? this.$attrs.hours : false } },
 			allowedPickerRange: { default() { return this.$attrs.allowedpickerrange ?? "" } },
+			pickerVisible: { default() { return this.$attrs.pickervisible ?? false } },
+			inputValue: { default() { return this.$attrs.inputvalue ?? ""} },
+			inputArea: { default() { return this.$attrs.inputarea ?? ""} },
+			ranged: { default() { return typeof this.$attrs.ranged  !== "undefined" ? this.$attrs.ranged : false } },
+			valid: { default() { return typeof this.$attrs.valid !== "undefined" ? this.$attrs.valid : null } },
+			hours: { default() { return typeof this.$attrs.hours !== "undefined" ? this.$attrs.hours : false } },
 		},
 		watch: {
 			'$attrs.pickervisible': function(n,o) {
@@ -162,12 +166,16 @@
 					this.togglePicker()
 				}
 			},
-			'$attrs.hours': function(n,o) { this.hours = n },
+			'$attrs.hours': function(n,o) { this.hours = typeof n !== "undefined" ? n : false},
+			'$attrs.valid': function(n,o) { this.valid = typeof n !== "undefined" ? n : null },
+			'$attrs.ranged': function(n,o) { this.ranged = typeof n !== "undefined" ? n : false },
 			'$attrs.inputarea': function(n,o) { this.inputArea = n },
-			'$attrs.inputvalue': function(n,o) {  
+			'$attrs.inputvalue': function(n,o) { 
 				this.inputValue = n;
+				this.updateInp()
 				if(this.inputValue.trim().length===0)
 					this.resetPicker();
+				this.validateInp()
 				this.parsePickerDt()
 				this.setPickerView()
 			},
@@ -176,7 +184,6 @@
 		data: () => ({
 			inpComp: null,
 			inpFld: null,
-			rangedInp: true, // if the picker is a from - to input
 			startDSel: false, // if we have just selected the start from the range
 			startYSel: false, // if we have just selected the start from the range
 			selItmId: "_date_picker_"+(new Date()).getTime(),
@@ -241,6 +248,8 @@
 			if(!this.inpComp) return
 			this.inpFld = (this.inpComp.getElementsByTagName("INPUT") || this.inpComp.getElementsByTagName("TEXTAREA"))[0] ?? null
 			if(!this.inpFld) return console.warn("Unable to connect to Input Area")
+			this.updateInp()
+			this.validateInp()
 			if(this.pickerVisible) {
 				this.pickerVisible = false
 				if(this.inputValue.length>0) this.togglePicker(true, this.inputValue)
@@ -248,18 +257,41 @@
 			}
 		},
 		methods: {
-			/*validateInp(str = this.inputValue) {
-				if(!this.rangedInp)
-					this.isValid = this.validateDtStr(str)
+			updateInp() {
+				if(this.inputValue.indexOf("-")>0) {
+					let spl = this.inputValue.split("-")
+					let from = spl[0].trim()
+					let to = spl[1].trim()
+					if( (new Date(from)).getTime() > (new Date(to)).getTime() ) {
+						let _ = JSON.parse(JSON.stringify(from))
+						from = to
+						to = _
+					}
+					this.inputValue = from + ' - ' + to
+					this.$emit("select", this.inputValue)
+				}
+			},
+			validateInp(str = this.inputValue) {
+				if(this.valid !== null) return
+				let valid = true
+				if(!this.ranged)
+					valid = this.validateDtStr(str)
 				else
-					this.isValid = this.validateDtStr(str.split(" - ")[0]) && this.validateDtStr(str.split(" - ")[1] ?? "")
-			},*/
+					valid = this.validateDtStr(str.split(" - ")[0]) && this.validateDtStr(str.split(" - ")[1] ?? "")
+				this.$emit("validate", valid)
+			},
 			validateDtStr(dt = this.selPickerDt) {
-				let spl = dt.split("/")
+				let hrs = dt.split(" ")[1] ?? ""
+				let spl = dt.split(" ")[0].split("/")
+				let splh = hrs.split(":")
+				if(hrs.length>0 && splh.length<3) return false
 				if(dt.indexOf("/")<0 || spl.length<3) return false
 				if(spl[0].trim().length===0 || spl[1].trim().length===0 || spl[2].trim().length!==4) return false
 				let m = (new Date(dt)).toString().split(" ")[1].toUpperCase()
-				return this.months.indexOf(m) === parseInt(spl[0].trim()-1)
+				let vh = hrs.length>0 && parseInt(splh[0]) >= 0 && parseInt(splh[0]) < 24
+				let vm = hrs.length>0 && parseInt(splh[1]) >= 0 && parseInt(splh[1]) < 60
+				let vs = hrs.length>0 && parseInt(splh[2]) >= 0 && parseInt(splh[2]) < 60
+				return this.months.indexOf(m) === parseInt(spl[0].trim()-1) && ( hrs.length===0 || (vh && vm && vs) )
 			},
 			selectPickerItm(item, skipMenuToggle = false) {
 				let itm = item.item
@@ -272,19 +304,24 @@
 						this.selM = this.selEndM
 						this.selEndY = this.selY
 						this.selPickerDt = (this.months.indexOf(this.selM)+1) + '/' + this.selD + '/' + this.selY
-						this.selEndPickerDt = (this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY
+						this.selEndPickerDt = !this.ranged ? this.selPickerDt : (this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY
 						this.inputValue = this.selPickerDt
-						this.$emit("select", this.inputValue)
 						this.crntPickerDt = this.inputValue
-						if(!skipMenuToggle) {
+						if(!this.ranged) {
+							this.crntEndPickerDt = this.crntPickerDt
+							this.parsePickerDt()
+						}
+						this.$emit("select", this.inputValue)
+						if(!skipMenuToggle && this.ranged) {
 							this.startDSel = true
 							this.startYSel = true
 						}
 						if(this.hours) {
 							this.inputValue = this.selPickerDt + ' ' + this.selHrs
 						}
-						if(!this.rangedInp && !skipMenuToggle) {
-							this.togglePicker()
+						if(!this.ranged && !skipMenuToggle) {
+							if(!this.hours) this.togglePicker()
+							else this.pickerViewInd = 0
 						}
 					} else {
 						this.selEndD = itm
@@ -301,12 +338,17 @@
 								this.crntPickerDt = _
 								this.crntEndPickerDt = this.selEndPickerDt
 								this.inputValue = this.crntPickerDt + ' - ' + this.crntEndPickerDt
+								this.parsePickerDt()
 							}
 							if(this.hours) {
-								this.inputValue = this.selPickerDt + ' ' + this.selHrs + ' - ' + this.selEndPickerDt + ' ' + this.selEndHrs
+								this.inputValue = 
+									(this.months.indexOf(this.selM)+1) + '/' + this.selD + '/' + this.selY + ' ' + this.selHrs + 
+									' - ' + 
+									(this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY + ' ' + this.selEndHrs
 							}
 							this.$emit("select", this.inputValue)
 							if(!this.hours) this.togglePicker()
+							else this.pickerViewInd = 0
 							this.startDSel = false
 							this.startYSel = false
 						}
@@ -321,7 +363,7 @@
 						this.selEndY = this.selY
 						this.selEndM = this.selM
 						this.selEndPickerDt = (this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY
-						if(!skipMenuToggle) {
+						if(!skipMenuToggle && this.ranged) {
 							this.startDSel = false
 						}
 					} else {
@@ -330,9 +372,10 @@
 					if(!skipMenuToggle) this.pickerViewInd = 2
 				}
 				this.setPickerView()
-				//this.validateInp()
+				this.validateInp()
 			},
 			parsePickerDt(date = "") {
+				function _(n) { return (n<10 ? '0' : '') + n.toString() }
 				// update the selected values if a date string is provided
 				let dts = date.length===0 ? 
 					[
@@ -342,46 +385,65 @@
 					] 
 					: [date]
 				for(let i in dts) {
-					let dt = dts[i]
-					// todo use different separators and formats
+					let dt = dts[i].split(" ")[0]
+					// todo use different separators and formats?
+					let hrs = dts[i].split(" ")[1] ?? ""
 					let spl = dt.split("/")
 					if(dt.indexOf("/")<0 || spl.length<3) continue
 					if(spl[0].trim().length===0 || spl[1].trim().length===0 || spl[2].trim().length!==4) continue
-					let m = spl[0].trim() // month must be first place!
+					let m = spl[0].trim()
 					let d = spl[1].trim()
 					let Y = spl[2].trim()
+					let hr = hrs.split(":")[0] ?? "00"
+					let mi = hrs.split(":")[1] ?? "00"
+					let sc = hrs.split(":")[2] ?? "00"
 					if(parseInt(i)===0) {					
 						this.selY = parseInt(Y)
 						this.selM = this.months[ parseInt(m)-1 ] ?? "JAN"
 						this.selD = parseInt(d)
 						this.seld = this.weekDys[(new Date(dt)).getDay()]
-						this.selPickerDt = m + "/" + this.selD + "/" + this.selY
+						this.selH = parseInt(hr)
+						this.selm = parseInt(mi)
+						this.sels = parseInt(sc)
+						this.selPickerDt = m + "/" + this.selD + "/" + this.selY + (this.hours ? ' ' + _(hr) + ':' + _(mi) + ':' + _(sc) : '')
 					}
 					else if (parseInt(i) === 1) {			
 						this.selEndY = parseInt(Y)
 						this.selEndM = this.months[ parseInt(m)-1 ] ?? "JAN"
 						this.selEndD = parseInt(d)
 						this.selEndd = this.weekDys[(new Date(dt)).getDay()]
-						this.selEndPickerDt = m + "/" + this.selEndD + "/" + this.selEndY
+						this.selEndH = parseInt(hr)
+						this.selEndm = parseInt(mi)
+						this.selEnds = parseInt(sc)
+						this.selEndPickerDt = m + "/" + this.selEndD + "/" + this.selEndY + (this.hours ? ' ' + _(hr) + ':' + _(mi) + ':' + _(sc) : '')
 					}
 					else if (parseInt(i) === 2) {			
 						this.crntY = parseInt(Y)
 						this.crntM = this.months[ parseInt(m)-1 ] ?? "JAN"
 						this.crntD = parseInt(d)
 						this.crntd = this.weekDys[(new Date(dt)).getDay()]
-						this.crntPickerDt = m + "/" + this.crntD + "/" + this.crntY
+						this.crntH = parseInt(hr)
+						this.crntm = parseInt(mi)
+						this.crnts = parseInt(sc)
+						this.crntPickerDt = m + "/" + this.crntD + "/" + this.crntY + (this.hours ? ' ' + _(hr) + ':' + _(mi) + ':' + _(sc) : '')
 					}
 					else if (parseInt(i) === 3) {			
 						this.crntEndY = parseInt(Y)
 						this.crntEndM = this.months[ parseInt(m)-1 ] ?? "JAN"
 						this.crntEndD = parseInt(d)
 						this.crntEndd = this.weekDys[(new Date(dt)).getDay()]
-						this.crntEndPickerDt = m + "/" + this.crntEndD + "/" + this.crntEndY
+						this.crntEndH = parseInt(hr)
+						this.crntEndm = parseInt(mi)
+						this.crntEnds = parseInt(sc)
+						this.crntEndPickerDt = m + "/" + this.crntEndD + "/" + this.crntEndY + (this.hours ? ' ' + _(hr) + ':' + _(mi) + ':' + _(sc) : '')
 					}
 					else {							
 						this.actY = parseInt(Y)
 						this.actM = this.months[ parseInt(m)-1 ] ?? "JAN"
 						this.actD = parseInt(d)
+						this.actH = parseInt(hr)
+						this.actm = parseInt(mi)
+						this.acts = parseInt(sc)
 						this.actd = this.weekDys[(new Date(dt)).getDay()]
 					}
 				}
@@ -458,9 +520,10 @@
 							if(range.length>0) {
 								available = unixCrnt >= unixFrom && unixCrnt <= unixTo
 							}
-							if(this.rangedInp) {
-								let selEndDt = this.startDSel ? ((this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY) : this.crntEndPickerDt
-								let unixFromMod = (new Date(this.crntPickerDt)).getTime()
+							if(this.ranged) {
+								let selEndDt = this.startDSel ? ((this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY) : 
+									(new Date(this.crntEndM + '/' + this.crntEndD + '/' + this.crntEndY))
+								let unixFromMod = (new Date(this.crntM + '/' + this.crntD + '/' + this.crntY)).getTime()
 								let unixToMod = (new Date( selEndDt )).getTime()
 								if(unixToMod < unixFromMod) {
 									let u2 = JSON.parse(JSON.stringify(unixFromMod))
@@ -480,7 +543,8 @@
 							let unixCrnt = (new Date( (k+1) +"/1/"+ (sely) )).getTime()
 							let unixFromSel = (new Date( (this.months.indexOf(this.crntM)+1) + '/1/' + this.crntY)).getTime()
 							let unixToSel = (new Date((this.months.indexOf(this.selEndM)+1) + '/1/' + this.crntEndY)).getTime()
-							let selEndDt = this.startDSel ? ((this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY) : this.crntEndPickerDt;
+							let selEndDt = this.startDSel ? ((this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY) : 
+								(new Date(this.crntEndM + '/' + this.crntEndD + '/' + this.crntEndY))
 							let unixActMod = (new Date( (this.months.indexOf(this.actM)+1) + "/1/" + this.actY)).getTime()
 							dt = k+1
 							dtStr = mnt.substr(0,1) + mnt.substr(1).toLowerCase()
@@ -488,9 +552,9 @@
 							this.crntDelta = unixToSel - unixFromSel
 							available = unixCrnt > unixFrom && unixCrnt < unixTo
 							selected = 
-								(!this.startDSel && (dtStr.toUpperCase() === this.crntM || dtStr.toUpperCase() === this.crntEndM || dtStr.toUpperCase() === this.selM)) 
+								(!this.startDSel && (dtStr.toUpperCase() === this.crntM || dtStr.toUpperCase() === this.crntEndM || dtStr.toUpperCase() === this.selM) && sely === this.selY) 
 								|| 
-								((this.startDSel || this.startYSel) && (dtStr.toUpperCase() === this.selM || dtStr.toUpperCase() === this.selEndM)) 
+								((this.startDSel || this.startYSel) && (dtStr.toUpperCase() === this.selM || dtStr.toUpperCase() === this.selEndM) && sely === this.selEndY ) 
 							inRange = unixCrnt > unixFromSel && unixCrnt < unixToSel && available
 							isStart = unixCrnt === unixFromSel
 							isEnd = unixCrnt === unixToSel
@@ -508,7 +572,7 @@
 								let yTo = parseInt(to.split("/")[2])
 								available = dt >= yFrom && dt <= yTo
 							}
-							if(this.rangedInp) {
+							if(this.ranged) {
 								let from = this.crntY
 								let to = selEndDt
 								if(to < from) {
@@ -539,91 +603,84 @@
 				}
 				this.pickerViewData = v
 			},
-			parsePickerHrs() {
-				let a = [
-					'act', 'crnt', 'crntEnd', 'sel', 'selEnd',
-				]
-				for(let pre of a) {
-					let spl = this[pre + 'Hrs'].split(":")
-					let h = parseInt(spl[0])
-					let m = parseInt(spl[1] ?? "0")
-					let s = parseInt(spl[2] ?? "0")
-				}
-				console.warn(a)
-			},
 			skipHours(reset = false) {
 				if(reset) {
-					if(this.startDSel) {
-						this.selHrs = "00:00:00"
-					}else {
-						this.selEndHrs = "00:00:00"
-					}
+					if(this.startDSel) this.selHrs = "00:00:00"
+					else this.selEndHrs = "00:00:00"
 				} 
-				if(this.startDSel) {
-					this.inputValue = this.selPickerDt + ' ' + this.selHrs
+				if(this.startDSel || !this.ranged) {
+					this.inputValue = (this.months.indexOf(this.selM)+1) + '/' + this.selD + '/' + this.selY + ' ' + (this.ranged ? this.selHrs : this.selEndHrs)
 				} else {
-					this.inputValue = this.selPickerDt + ' ' + this.selHrs + ' - ' + this.selEndPickerDt + ' ' + this.selEndHrs
+					this.inputValue = (this.months.indexOf(this.selM)+1) + '/' + this.selD + '/' + this.selY + ' ' + this.selHrs + ' - ' + 
+						(this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY + ' ' + this.selEndHrs
 				}
 				this.$emit("select", this.inputValue)
+				this.validateInp()
+				if(!this.ranged) return this.togglePicker()
 				this.pickerViewInd = 1
 				this.setPickerView()
 			},
-			getHours(inp, event, isUp = false) {
+			updateHrs() {
 				function _(n) { return (n<10 ? '0' : '') + n.toString() }
+				if(this.startDSel) {
+					this.selHrs = _(this.selH) + ':' + _(this.selm) + ':' + _(this.sels)
+				}else {
+					this.selEndHrs = _(this.selEndH) + ':' + _(this.selEndm) + ':' + _(this.selEnds)
+				}
+			},
+			getHours(inp, event, isUp = false) {
 				let v = parseInt(inp.value.trim())
 				v = isNaN(v) ? 0 : v
 				if(v<0 || v>23) v = 0
 				inp.value = v
-				if(this.startDSel) {
-					this.selH = v
-					this.selHrs = _(this.selH) + ':' + _(this.selm) + ':' + _(this.sels)
-				}else {
-					this.selEndH = v
-					this.selEndHrs = _(this.selEndH) + ':' + _(this.selEndm) + ':' + _(this.selEnds)
-				}
-				this.parsePickerHrs()
+				if(this.startDSel) this.selH = v
+				else this.selEndH = v
+				this.updateHrs()
 				if(event.key === "Enter" && this.$refs.inpM && isUp) {
 					this.$refs.inpM.focus()
 				}
-				console.log(this.selHrs, this.selEndHrs)
 			},
 			getMinutes(inp, event, isUp = false) {
-				function _(n) { return (n<10 ? '0' : '') + n.toString() }
 				let v = parseInt(inp.value.trim())
 				v = isNaN(v) ? 0 : v
 				if(v<0 || v>59) v = 0
 				inp.value = v
-				if(this.startDSel) {
-					this.selm = v
-					this.selHrs = _(this.selH) + ':' + _(this.selm) + ':' + _(this.sels)
-				}else {
-					this.selEndm = v
-					this.selEndHrs = _(this.selEndH) + ':' + _(this.selEndm) + ':' + _(this.selEnds)
-				}
-				this.parsePickerHrs()
+				if(this.startDSel) this.selm = v
+				else this.selEndm = v
+				this.updateHrs()
 				if(event.key === "Enter" && this.$refs.inpS && isUp) {
 					this.$refs.inpS.focus()
 				}
-				console.log(this.selHrs, this.selEndHrs)
 			},
 			getSeconds(inp, event, isUp = false) {
-				function _(n) { return (n<10 ? '0' : '') + n.toString() }
 				let v = parseInt(inp.value.trim())
 				v = isNaN(v) ? 0 : v
 				if(v<0 || v>59) v = 0
 				inp.value = v
-				if(this.startDSel) {
-					this.sels = v
-					this.selHrs = _(this.selH) + ':' + _(this.selm) + ':' + _(this.sels)
-				}else {
-					this.selEnds = v
-					this.selEndHrs = _(this.selEndH) + ':' + _(this.selEndm) + ':' + _(this.selEnds)
-				}
-				this.parsePickerHrs()
+				if(this.startDSel) this.sels = v
+				else this.selEnds = v
+				this.updateHrs()
 				if(event.key === "Enter" && isUp) {
 					this.skipHours()
 				}
-				console.log(this.selHrs, this.selEndHrs)
+			},
+			incrHrs(direction) {
+				this[this.startDSel ? 'selH' : 'selEndH'] += direction
+				if(this[this.startDSel ? 'selH' : 'selEndH']<0) this[this.startDSel ? 'selH' : 'selEndH'] = 23
+				if(this[this.startDSel ? 'selH' : 'selEndH']>23) this[this.startDSel ? 'selH' : 'selEndH'] = 0 
+				this.updateHrs()
+			},
+			incrMns(direction) {
+				this[this.startDSel ? 'selm' : 'selEndm'] += direction*5
+				if(this[this.startDSel ? 'selm' : 'selEndm']<0) this[this.startDSel ? 'selm' : 'selEndm'] = 55
+				if(this[this.startDSel ? 'selm' : 'selEndm']>59) this[this.startDSel ? 'selm' : 'selEndm'] = 0 
+				this.updateHrs()
+			},
+			incrScs(direction) {
+				this[this.startDSel ? 'sels' : 'selEnds'] += direction*5
+				if(this[this.startDSel ? 'sels' : 'selEnds']<0) this[this.startDSel ? 'sels' : 'selEnds'] = 55
+				if(this[this.startDSel ? 'sels' : 'selEnds']>59) this[this.startDSel ? 'sels' : 'selEnds'] = 0 
+				this.updateHrs()
 			},
 			hideItmSel(event) { 
 				if(!this.pickerVisible) return
@@ -651,13 +708,12 @@
 				this.$emit("toggle", this.pickerVisible)
 				if(!this.pickerVisible) {
 					this.crntPickerDt = this.selPickerDt
-					if(this.rangedInp) this.crntEndPickerDt = this.selEndPickerDt
-					//if(this.isRequired) this.validateInp()
+					if(this.ranged) this.crntEndPickerDt = this.selEndPickerDt
 					return
 				} else {
 					if(this.actD === 1 && this.actM === "JAN" && this.actY === 1997) this.resetPicker(false, dt.length===0 ? this.inputValue : dt)
 					if(this.inputValue.length>0) {
-						if(!this.rangedInp) {
+						if(!this.ranged) {
 							this.crntPickerDt = this.inputValue
 							this.selPickerDt = this.crntPickerDt
 						}
@@ -670,8 +726,8 @@
 								this.selEndPickerDt = this.crntEndPickerDt
 							}
 						}
-						//this.validateInp()
 					}
+					this.validateInp()
 					this.parsePickerDt()
 				}
 				if(resetPckr) this.resetPicker(true, dt)
@@ -681,22 +737,33 @@
 				this.setPickerView()
 			},
 			resetPicker(setInput = false, dt = ""){
+				function _(n) { return (n<10 ? '0' : '') + n.toString() }
 				let d = new Date()
-				this.crntPickerDt = dt.length> 0 ? dt : (d.getMonth()+1) + "/" + d.getDate() + "/" + d.getFullYear()
+				this.crntPickerDt = dt.length> 0 ? dt : (d.getMonth()+1) + "/" + d.getDate() + "/" + d.getFullYear() 
+					+ (this.hours ? ' ' + _(d.getHours()) + ':' + _(d.getMinutes()) + ':' + _(d.getSeconds()) : '')
 				this.selPickerDt = this.crntPickerDt
 				this.crntEndPickerDt = this.crntPickerDt
 				this.selEndPickerDt = this.selPickerDt
-				this.actPickerDt = JSON.parse(JSON.stringify( (d.getMonth()+1) + "/" + d.getDate() + "/" + d.getFullYear() ))
-				if(setInput) this.inputValue = this.crntPickerDt + (this.rangedInp ? ' - ' +  this.crntEndPickerDt : '')
+				this.actPickerDt = 
+					JSON.parse(JSON.stringify( 
+						(d.getMonth()+1) + "/" + d.getDate() + "/" + d.getFullYear() + (this.hours ? ' ' + _(d.getHours()) + ':' + _(d.getMinutes()) + ':' + _(d.getSeconds()) : '') 
+					))
+				if(setInput) this.inputValue = this.crntPickerDt + (this.ranged ? ' - ' +  this.crntEndPickerDt : '')
 				//else this.inputValue = ""
 				this.$emit("select", this.inputValue)
 				this.parsePickerDt()
 			},
-			switchPicker(ind = this.pickerViewInd) {
-				if(ind===0) this.pickerViewInd = 1
-				else if(ind===1) this.pickerViewInd = 2 
-				else if(ind===2) this.pickerViewInd = 3
-				else this.pickerViewInd = this.hours ? 0 : 1
+			switchPicker(direction = 1, ind = null) {
+				if(ind !== null) this.pickerViewInd = ind
+				else this.pickerViewInd += direction
+				if(this.pickerViewInd<1 && !this.hours) this.pickerViewInd = 3
+				if(this.pickerViewInd>3 && !this.hours) this.pickerViewInd = 1
+				if(this.pickerViewInd<0 && this.hours) this.pickerViewInd = 3
+				if(this.pickerViewInd>3 && this.hours) this.pickerViewInd = 0
+				//if(ind===0) this.pickerViewInd = 1
+				//else if(ind===1) this.pickerViewInd = 2 
+				//else if(ind===2) this.pickerViewInd = 3
+				//else this.pickerViewInd = this.hours ? 0 : 1
 				this.setPickerView()
 			},
 			navigatePicker(direction = 0) {
@@ -724,9 +791,8 @@
 			<div class="toggle-in z-10 flex flex-col w-full h-full bg-white dark:bg-gray-800 shadow-lg border border-gray-100 dark:border-gray-700 origin-top-left">
 				<!--Picker Navigation Row-->
 				<div class="flex flex-row w-full items-center justify-between p-4">
-					<button v-on:click="switchPicker()" 
-									class="outline-none outline-transparent text-black dark:text-white flex flex-row 
-									items-center justify-center w-32 h-8 rounded-sm hover:bg-black/10 dark:hover:bg-white/10">
+					<button v-on:click="switchPicker()" v-on:contextmenu="$event.preventDefault(); switchPicker(-1)" data-tip="Right for backwards navigation"
+									class="outline-none outline-transparent text-black dark:text-white flex flex-row items-center justify-center w-32 h-8 rounded-sm hover:bg-black/10 dark:hover:bg-white/10">
 						<span class="text-sm">
 							<span v-if="pickerViewInd===0" v-text="'Hours'"></span>
 							<span v-if="pickerViewInd===1" v-text="(!this.startDSel && this.startYSel ? this.selM : this.selEndM ) + ' ' + (!this.startDSel && this.startYSel ? this.selY : this.selEndY)"></span>
@@ -757,36 +823,43 @@
 					<span v-if="pickerViewInd===1" v-for="d in weekDys" v-text="d" class="w-[55px] py-2 flex items-center justify-center"></span>
 				</div>
 				<div class="flex flex-col h-full text-black dark:text-white" 
-						 v-bind:class="{'px-4 py-2': pickerViewInd===3, 'py-4 mt-8': pickerViewInd===1}">
+						 v-bind:class="{'px-4 py-2': pickerViewInd===3, 'py-4 mt-2': pickerViewInd===1}">
 					<div v-if="pickerViewInd === 0" class="h-full flex flex-col">
 						<div class="z-10 h-10 w-full -mb-10 flex flex-row-reverse items-center">
-							<div v-on:click="skipHours()" class="h-full w-[fit-content] flex items-center mr-4 opacity-50 hover:opacity-100 cursor-pointer">
-								<span class="underline text-sm">skip</span>
+							<div v-on:click="skipHours()" class="h-full w-[fit-content] flex items-center mr-6 opacity-50 hover:opacity-100 cursor-pointer">
+								<span class="underline text-sm select-none">back</span>
 							</div>
 						</div>			
 						<div class="flex flex-col h-full justify-center">
-							<div class="flex flex-row items-center justify-center -mt-12 py-4 opacity-75">
-								<span v-text="startDSel ? selPickerDt : selEndPickerDt"></span>
-								<span class="w-4"></span>
-								<span v-text="startDSel ? selHrs : selEndHrs"></span>
-							</div>
 							<div class="flex flex-row items-center justify-center">
-								<div class="w-20 overflow-hidden">
-									<input ref="inpH" type="number" placeholder="hh" min="0" max="23"
-											   v-on:keydown="getHours($refs.inpH, $event)" v-on:keyup="getHours($refs.inpH, $event, true)"
-												 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+								<div class="flex flex-col items-center justify-center">
+									<div class="w-4 h-4 border-r-4 border-t-4 transform -rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrHrs(1)"></div>
+									<div class="w-20 overflow-hidden">
+										<input ref="inpH" type="number" placeholder="hh" min="0" max="23" v-bind:value="startDSel ? selH : selEndH"
+													 v-on:keydown="getHours($refs.inpH, $event)" v-on:keyup="getHours($refs.inpH, $event, true)"
+													 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+									</div>
+									<div class="w-4 h-4 border-r-4 border-b-4 transform rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrHrs(-1)"></div>
 								</div>
-								<span class="mx-2 text-lg">:</span>
-								<div class="w-20 overflow-hidden">
-									<input ref="inpM" type="number" placeholder="mm" min="0" max="59"
-												 v-on:keydown="getMinutes($refs.inpM, $event)" v-on:keyup="getMinutes($refs.inpM, $event, true)"
-												 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+								<span class="mx-2 text-lg select-none">:</span>
+								<div class="flex flex-col items-center justify-center">
+									<div class="w-4 h-4 border-r-4 border-t-4 transform -rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrMns(1)"></div>
+									<div class="w-20 overflow-hidden">
+										<input ref="inpM" type="number" placeholder="mm" min="0" max="59" v-bind:value="startDSel ? selm : selEndm"
+													 v-on:keydown="getMinutes($refs.inpM, $event)" v-on:keyup="getMinutes($refs.inpM, $event, true)"
+													 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+									</div>
+									<div class="w-4 h-4 border-r-4 border-b-4 transform rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrMns(-1)"></div>
 								</div>
-								<span class="mx-2 text-lg">:</span>
-								<div class="w-20 overflow-hidden">
-									<input ref="inpS" type="number" placeholder="ss" min="0" max="59"
-												 v-on:keydown="getSeconds($refs.inpS, $event)" v-on:keyup="getSeconds($refs.inpS, $event, true)"
-												 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+								<span class="mx-2 text-lg select-none">:</span>
+								<div class="flex flex-col items-center justify-center">
+									<div class="w-4 h-4 border-r-4 border-t-4 transform -rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrScs(1)"></div>
+									<div class="w-20 overflow-hidden">
+										<input ref="inpS" type="number" placeholder="ss" min="0" max="59" v-bind:value="startDSel ? sels : selEnds"
+													 v-on:keydown="getSeconds($refs.inpS, $event)" v-on:keyup="getSeconds($refs.inpS, $event, true)"
+													 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+									</div>
+									<div class="w-4 h-4 border-r-4 border-b-4 transform rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrScs(-1)"></div>
 								</div>
 							</div>
 						</div>
@@ -807,9 +880,9 @@
 									 'flex-auto' : pickerViewInd!==1}">
 								<div class="h-full w-1/2"
 										 v-bind:class="{
-										 'bg-black/10 dark:bg-white/10': (item.inRange || (item.isEnd && crntDelta>0)) && rangedInp && !startDSel,
+										 'bg-black/10 dark:bg-white/10': (item.inRange || (item.isEnd && crntDelta>0)) && ranged && !startDSel,
 										 'border-t border-b border-dashed border-black dark:border-white': 
-											(item.inRange || (item.isEnd && crntDelta>0)) && rangedInp && startDSel 
+											(item.inRange || (item.isEnd && crntDelta>0)) && ranged && startDSel 
 											&& ( (item.item !== selY && item.item !== selEndY) || 
 											(selY !== selEndY && (item.item === selY || item.item === selEndY)) ),
 										 }"></div>
@@ -827,13 +900,13 @@
 									<div class="flex flex-row h-full w-full">
 										<div class="h-full w-1/2 rounded-l-full" 
 												 v-bind:class="{
-												 'bg-black/10 dark:bg-white/10': item.isStart && crntDelta>0 && rangedInp && !startDSel,
-												 'border-t border-b border-l border-dashed border-black dark:border-white': item.isStart && crntDelta>0 && rangedInp && startDSel,
+												 'bg-black/10 dark:bg-white/10': item.isStart && crntDelta>0 && ranged && !startDSel,
+												 'border-t border-b border-l border-dashed border-black dark:border-white': item.isStart && crntDelta>0 && ranged && startDSel,
 												 }"></div>
 										<div class="h-full w-1/2 rounded-r-full"
 												 v-bind:class="{
-												 'bg-black/10 dark:bg-white/10': item.isEnd && crntDelta>0 && rangedInp && !startDSel,
-												 'border-t border-b border-r border-dashed border-black dark:border-white': item.isEnd && crntDelta>0 && rangedInp && startDSel,
+												 'bg-black/10 dark:bg-white/10': item.isEnd && crntDelta>0 && ranged && !startDSel,
+												 'border-t border-b border-r border-dashed border-black dark:border-white': item.isEnd && crntDelta>0 && ranged && startDSel,
 												 }"></div>
 									</div>
 									<div class="w-full h-full flex items-center justify-center" 
@@ -842,9 +915,9 @@
 								</div>
 								<div class="h-full w-1/2"
 										 v-bind:class="{
-										 'bg-black/10 dark:bg-white/10': (item.inRange || (item.isStart && crntDelta>0)) && rangedInp && !startDSel,
+										 'bg-black/10 dark:bg-white/10': (item.inRange || (item.isStart && crntDelta>0)) && ranged && !startDSel,
 										 'border-t border-b border-dashed border-black dark:border-white': 
-											(item.inRange || (item.isStart && crntDelta>0)) && rangedInp && startDSel 
+											(item.inRange || (item.isStart && crntDelta>0)) && ranged && startDSel 
 											&& ( (item.item !== selY && item.item !== selEndY) || 
 											(selY !== selEndY && (item.item === selY || item.item === selEndY)) ),
 										 }"></div>
@@ -1369,8 +1442,11 @@
 			inpValue: "Hello World!",
 			inpDropdown: "",
 			inpPicker: "02/08/2022",
+			pickerAllowedRange: "03/12/2017 - 08/15/2024",
 			pickerVis: false,
 			isPickerValid: true,
+			pickerRanged: true,
+			pickerHours: true,
 			drpdwnVis: false,
 			isVal: true,
 			selectInd: 0,
@@ -1417,10 +1493,14 @@
 			},
 			getPickerDt(val) {
 				console.log(val)
-				let spl = val.split("-")
-				if( spl[0].trim() === (spl[1] ?? "").trim() ) this.inpPicker = spl[0].trim()
-				else this.inpPicker = val
-				this.validateInp()
+				this.inpPicker = val
+				//let spl = val.split("-")
+				//if( spl[0].trim() === (spl[1] ?? "").trim() ) this.inpPicker = spl[0].trim()
+				//else this.inpPicker = val
+				//this.validateInp()
+			},
+			validatePicker(val) {
+				this.isPickerValid = val
 			},
 			validateInp(str = this.inpPicker) {
 				console.log(str)
