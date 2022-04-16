@@ -45,16 +45,16 @@
 			</div>
 			
 			<div id="prefixIcon1" class="hidden">
-				<div class="rounded-full w-[1.5em] h-[1.5em] border border-current flex items-center justify-center">1</div>
+				<div data-tip="Prefix 1 Button" class="rounded-full w-[1.5em] h-[1.5em] border border-current flex items-center justify-center">1</div>
 			</div>
 			<div id="prefixIcon2" class="hidden">
-				<div class="rounded-full w-[1.5em] h-[1.5em] border border-current flex items-center justify-center">2</div>
+				<div data-tip="Prefix 2 Button"class="rounded-full w-[1.5em] h-[1.5em] border border-current flex items-center justify-center">2</div>
 			</div>
 			<div id="prefixIcon3" class="hidden">
-				<div class="rounded-full w-[1.5em] h-[1.5em] border border-current flex items-center justify-center">3</div>
+				<div data-tip="Prefix 3 Button" class="rounded-full w-[1.5em] h-[1.5em] border border-current flex items-center justify-center">3</div>
 			</div>
 			<div id="suffixIcon1" class="hidden">
-				<div class="rounded-full w-[1.5em] h-[1.5em] border border-current flex items-center justify-center">></div>
+				<div data-tip="Suffix 1 Button" class="rounded-full w-[1.5em] h-[1.5em] border border-current flex items-center justify-center">></div>
 			</div>
 			<div id="clearIcon" class="hidden">
 				<div class="rounded-full w-[1.25em] h-[1.25em] flex flex-col items-center justify-center cursor-pointer">
@@ -122,7 +122,7 @@
 						</div>
 					</button>
 				</div>
-				<input-area class=" w-60" 
+				<input-area class=" w-96" 
 										id="inp_sm"
 										v-bind:label="'Select Date Range'"
 										v-bind:error="''"
@@ -138,6 +138,7 @@
 														 v-bind:inputValue="inpPicker"
 														 v-bind:inputArea="inp_sm"
 														 v-bind:allowedPickerRange="'3/2/2018 - 5/12/2022'"
+														 v-bind:hours="true"
 														 @select="getPickerDt"
 														 @toggle="togglePickr"></dropdown-datepicker>
 			</div>
@@ -150,6 +151,7 @@
 			pickerVisible: { default() { return this.$attrs.pickervisible ?? false } },
 			inputArea: { default() { return this.$attrs.inputarea ?? ""} },
 			inputValue: { default() { return this.$attrs.inputvalue ?? ""} },
+			hours: { default() { return typeof this.$attrs.hours !== "undefined" ? this.$attrs.hours : false } },
 			allowedPickerRange: { default() { return this.$attrs.allowedpickerrange ?? "" } },
 		},
 		watch: {
@@ -160,6 +162,7 @@
 					this.togglePicker()
 				}
 			},
+			'$attrs.hours': function(n,o) { this.hours = n },
 			'$attrs.inputarea': function(n,o) { this.inputArea = n },
 			'$attrs.inputvalue': function(n,o) {  
 				this.inputValue = n;
@@ -184,28 +187,50 @@
 			crntPickerDt: "1/1/1997", // last selection date
 			crntEndPickerDt: "1/1/1997", // last selection date
 			actPickerDt: "1/1/1997", // the actual date
-			pickerViewInd: 1, // 0=Hours, 1=days, 2=years 
+			pickerViewInd: 1, // 0=Hours, 1=days, 2=months, 3=years 
 			monthIncr: 0,
+			yearIncr: 0,
+			yearSetIncr: 0,
 			selY: 1997,
 			selM: "JAN",
 			selD: 1,
 			seld: "S",
+			selHrs: "00:00:00",
+			selH: 8,
+			selm: 0,
+			sels: 0,
 			selEndY: 1997,
 			selEndM: "JAN",
 			selEndD: 1,
 			selEndd: "S",
+			selEndHrs: "00:00:00",
+			selEndH: 8,
+			selEndm: 0,
+			selEnds: 0,
 			crntY: 1997,
 			crntM: "JAN",
 			crntD: 1,
 			crntd: "S",
+			crntHrs: "00:00:00",
+			crntH: 8,
+			crntm: 0,
+			crnts: 0,
 			crntEndY: 1997,
 			crntEndM: "JAN",
 			crntEndD: 1,
 			crntEndd: "S",
+			crntEndHrs: "00:00:00",
+			crntEndH: 8,
+			crntEndm: 0,
+			crntEnds: 0,
 			actY: 1997, 
 			actM: "JAN",
 			actD: 1,
 			actd: "S",
+			actHrs: "00:00:00",
+			actH: 8,
+			actm: 0,
+			acts: 0,
 			crntDelta: 0,
 			pickerViewData: Array(),
 			yrSelStart: "YYYY",
@@ -244,13 +269,8 @@
 					item.selected = true
 					if(!this.startDSel) {
 						this.selD = itm
-						if(this.months.indexOf(this.selM)>this.months.indexOf(this.selEndM)) {
-							let _m = JSON.parse(JSON.stringify(this.selEndM))
-							this.selEndM = JSON.parse(JSON.stringify(this.selM))
-							this.selM = _m
-						}
+						this.selM = this.selEndM
 						this.selEndY = this.selY
-						this.selEndM = this.selM
 						this.selPickerDt = (this.months.indexOf(this.selM)+1) + '/' + this.selD + '/' + this.selY
 						this.selEndPickerDt = (this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY
 						this.inputValue = this.selPickerDt
@@ -259,6 +279,9 @@
 						if(!skipMenuToggle) {
 							this.startDSel = true
 							this.startYSel = true
+						}
+						if(this.hours) {
+							this.inputValue = this.selPickerDt + ' ' + this.selHrs
 						}
 						if(!this.rangedInp && !skipMenuToggle) {
 							this.togglePicker()
@@ -279,14 +302,20 @@
 								this.crntEndPickerDt = this.selEndPickerDt
 								this.inputValue = this.crntPickerDt + ' - ' + this.crntEndPickerDt
 							}
+							if(this.hours) {
+								this.inputValue = this.selPickerDt + ' ' + this.selHrs + ' - ' + this.selEndPickerDt + ' ' + this.selEndHrs
+							}
 							this.$emit("select", this.inputValue)
-							this.togglePicker()
+							if(!this.hours) this.togglePicker()
 							this.startDSel = false
 							this.startYSel = false
 						}
 					}
 					this.parsePickerDt()
 				} else if(this.pickerViewInd === 2) {
+					this.selEndM = item.itemStr.toUpperCase()
+					if(!skipMenuToggle) this.pickerViewInd = 1 
+				} else if(this.pickerViewInd === 3) {
 					if(!this.startYSel) {
 						this.selY = itm
 						this.selEndY = this.selY
@@ -294,16 +323,11 @@
 						this.selEndPickerDt = (this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY
 						if(!skipMenuToggle) {
 							this.startDSel = false
-							//this.startYSel = true
 						}
 					} else {
 						this.selEndY = itm
-						if(!skipMenuToggle) {
-							//this.startDSel = true
-							//this.startYSel = false
-						}
 					}
-					if(!skipMenuToggle) this.pickerViewInd = 1
+					if(!skipMenuToggle) this.pickerViewInd = 2
 				}
 				this.setPickerView()
 				//this.validateInp()
@@ -363,20 +387,29 @@
 				}
 			},
 			setPickerView(range = this.allowedPickerRange) {
-				let start = 1
-				let m = 1
-				let n = (this.pickerViewInd===1 ? 7 : 4)
+				if(this.pickerViewInd===0) return
 				let spl = range.split("-")
 				let from = spl[0].trim()
 				let to = spl[1].trim() ?? ""
+				let unixAct = (new Date(this.actPickerDt)).getTime()
 				let unixFrom = (new Date(from)).getTime()
 				let unixTo = (new Date(to)). getTime()
 				let selm =  (!this.startDSel && this.startYSel ? this.selM : this.selEndM )
 				let sely =  (!this.startDSel && this.startYSel ? this.selY : this.selEndY)
-				let unixAct = (new Date(this.actPickerDt)).getTime()
-				let v = Array(
-					Array(), Array(), Array(), Array(), Array(), Array(),
-				)
+				let start = 1
+				let m = 1
+				let n = (
+					this.pickerViewInd===1 ? 7 : 
+						( this.pickerViewInd===2 ? 3 : 4 )
+					)
+				let v =
+					this.pickerViewInd===2 ? 
+					Array(
+						Array(), Array(), Array(), Array()
+					) : 
+					Array(
+						Array(), Array(), Array(), Array(), Array(), Array(),
+					)
 				if(this.pickerViewInd===1) {
 				
 					m = this.months.indexOf( selm  )+1 - this.monthIncr
@@ -393,13 +426,15 @@
 					if(start<0) start = 6
 					this[ (!this.startDSel && this.startYSel ? 'selM' : 'selEndM') ] = selm
 					this[ (!this.startDSel && this.startYSel ? 'selY' : 'selEndY') ] = sely
-					
-					
-				} else {
-					start = this.actY - 6 - (this.monthIncr * n * v.length)
+				} 
+				else if (this.pickerViewInd===2) {
+					sely -= this.yearIncr
+					this[ (!this.startDSel && this.startYSel ? 'selY' : 'selEndY') ] = sely
+				}
+				else if (this.pickerViewInd===3) {
+					start = this.actY - 6 - (this.monthIncr * n * v.length) - (( n * v.length)) * (this.yearSetIncr)
 					this.yrSelStart = start
 				}
-				
 				let dInd = 0
 				for(let i in v) {
 					let a = v[i]
@@ -411,7 +446,7 @@
 						let isStart = false
 						let isEnd = false
 						let isAct = false
-						let dt;
+						let dt, dtStr;
 						if(this.pickerViewInd===1) {
 							dt = (k >= start && dInd===0) || (dInd>0 && this.validateDtStr(m+'/'+dInd+'/'+sely)) ? dInd : -1
 							selected = 
@@ -425,20 +460,42 @@
 							}
 							if(this.rangedInp) {
 								let selEndDt = this.startDSel ? ((this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY) : this.crntEndPickerDt
-								let unixFrom = (new Date(this.crntPickerDt)).getTime()
-								let unixTo = (new Date( selEndDt )).getTime()
-								if(unixTo < unixFrom) {
-									let u2 = JSON.parse(JSON.stringify(unixFrom))
-									unixFrom = JSON.parse(JSON.stringify(unixTo))
-									unixTo = u2
+								let unixFromMod = (new Date(this.crntPickerDt)).getTime()
+								let unixToMod = (new Date( selEndDt )).getTime()
+								if(unixToMod < unixFromMod) {
+									let u2 = JSON.parse(JSON.stringify(unixFromMod))
+									unixFromMod = JSON.parse(JSON.stringify(unixToMod))
+									unixToMod = u2
 								}
-								isStart = unixCrnt === unixFrom
-								isEnd = unixCrnt === unixTo
-								this.crntDelta = unixTo - unixFrom
-								inRange = unixCrnt > unixFrom && unixCrnt < unixTo && available//&& this.months[m-1] === (!this.startYSel ? this.selM : this.selEndM)
+								isStart = unixCrnt === unixFromMod
+								isEnd = unixCrnt === unixToMod
+								this.crntDelta = unixToMod - unixFromMod
+								inRange = unixCrnt > unixFromMod && unixCrnt < unixToMod && available//&& this.months[m-1] === (!this.startYSel ? this.selM : this.selEndM)
 							}
 							if(k >= start) dInd++
-						} else {
+							available = available && dt>0
+						} 
+						else if(this.pickerViewInd===2) {
+							let mnt = this.months[k]
+							let unixCrnt = (new Date( (k+1) +"/1/"+ (sely) )).getTime()
+							let unixFromSel = (new Date( (this.months.indexOf(this.crntM)+1) + '/1/' + this.crntY)).getTime()
+							let unixToSel = (new Date((this.months.indexOf(this.selEndM)+1) + '/1/' + this.crntEndY)).getTime()
+							let selEndDt = this.startDSel ? ((this.months.indexOf(this.selEndM)+1) + '/' + this.selEndD + '/' + this.selEndY) : this.crntEndPickerDt;
+							let unixActMod = (new Date( (this.months.indexOf(this.actM)+1) + "/1/" + this.actY)).getTime()
+							dt = k+1
+							dtStr = mnt.substr(0,1) + mnt.substr(1).toLowerCase()
+							isAct = unixActMod === unixCrnt
+							this.crntDelta = unixToSel - unixFromSel
+							available = unixCrnt > unixFrom && unixCrnt < unixTo
+							selected = 
+								(!this.startDSel && (dtStr.toUpperCase() === this.crntM || dtStr.toUpperCase() === this.crntEndM || dtStr.toUpperCase() === this.selM)) 
+								|| 
+								((this.startDSel || this.startYSel) && (dtStr.toUpperCase() === this.selM || dtStr.toUpperCase() === this.selEndM)) 
+							inRange = unixCrnt > unixFromSel && unixCrnt < unixToSel && available
+							isStart = unixCrnt === unixFromSel
+							isEnd = unixCrnt === unixToSel
+						}
+						else {
 							dt = start+k
 							isAct = this.actY === dt
 							selected = 
@@ -462,13 +519,16 @@
 								isStart = dt === from
 								isEnd = dt === to
 								inRange = dt > from && dt < to && available
+								this.crntDelta = from - to
 							}
 							this.yrSelEnd = dt
+							available = available && dt>0
 						}
-						a[j] = {item: dt, inRange: inRange, selected: selected, available: available && dt>0, isStart: isStart, isEnd: isEnd, actual: isAct}
+						a[j] = {item: dt, itemStr: dtStr, inRange: inRange, selected: selected, available: available, isStart: isStart, isEnd: isEnd, actual: isAct}
 					}
 				}
 				// remove empty rows on the beginning
+				if(this.pickerViewInd!==2)
 				for(let i in v){
 					let r = v[i]
 					let empty = true
@@ -478,6 +538,92 @@
 					if(empty) v.splice(i,1)
 				}
 				this.pickerViewData = v
+			},
+			parsePickerHrs() {
+				let a = [
+					'act', 'crnt', 'crntEnd', 'sel', 'selEnd',
+				]
+				for(let pre of a) {
+					let spl = this[pre + 'Hrs'].split(":")
+					let h = parseInt(spl[0])
+					let m = parseInt(spl[1] ?? "0")
+					let s = parseInt(spl[2] ?? "0")
+				}
+				console.warn(a)
+			},
+			skipHours(reset = false) {
+				if(reset) {
+					if(this.startDSel) {
+						this.selHrs = "00:00:00"
+					}else {
+						this.selEndHrs = "00:00:00"
+					}
+				} 
+				if(this.startDSel) {
+					this.inputValue = this.selPickerDt + ' ' + this.selHrs
+				} else {
+					this.inputValue = this.selPickerDt + ' ' + this.selHrs + ' - ' + this.selEndPickerDt + ' ' + this.selEndHrs
+				}
+				this.$emit("select", this.inputValue)
+				this.pickerViewInd = 1
+				this.setPickerView()
+			},
+			getHours(inp, event, isUp = false) {
+				function _(n) { return (n<10 ? '0' : '') + n.toString() }
+				let v = parseInt(inp.value.trim())
+				v = isNaN(v) ? 0 : v
+				if(v<0 || v>23) v = 0
+				inp.value = v
+				if(this.startDSel) {
+					this.selH = v
+					this.selHrs = _(this.selH) + ':' + _(this.selm) + ':' + _(this.sels)
+				}else {
+					this.selEndH = v
+					this.selEndHrs = _(this.selEndH) + ':' + _(this.selEndm) + ':' + _(this.selEnds)
+				}
+				this.parsePickerHrs()
+				if(event.key === "Enter" && this.$refs.inpM && isUp) {
+					this.$refs.inpM.focus()
+				}
+				console.log(this.selHrs, this.selEndHrs)
+			},
+			getMinutes(inp, event, isUp = false) {
+				function _(n) { return (n<10 ? '0' : '') + n.toString() }
+				let v = parseInt(inp.value.trim())
+				v = isNaN(v) ? 0 : v
+				if(v<0 || v>59) v = 0
+				inp.value = v
+				if(this.startDSel) {
+					this.selm = v
+					this.selHrs = _(this.selH) + ':' + _(this.selm) + ':' + _(this.sels)
+				}else {
+					this.selEndm = v
+					this.selEndHrs = _(this.selEndH) + ':' + _(this.selEndm) + ':' + _(this.selEnds)
+				}
+				this.parsePickerHrs()
+				if(event.key === "Enter" && this.$refs.inpS && isUp) {
+					this.$refs.inpS.focus()
+				}
+				console.log(this.selHrs, this.selEndHrs)
+			},
+			getSeconds(inp, event, isUp = false) {
+				function _(n) { return (n<10 ? '0' : '') + n.toString() }
+				let v = parseInt(inp.value.trim())
+				v = isNaN(v) ? 0 : v
+				if(v<0 || v>59) v = 0
+				inp.value = v
+				if(this.startDSel) {
+					this.sels = v
+					this.selHrs = _(this.selH) + ':' + _(this.selm) + ':' + _(this.sels)
+				}else {
+					this.selEnds = v
+					this.selEndHrs = _(this.selEndH) + ':' + _(this.selEndm) + ':' + _(this.selEnds)
+				}
+				this.parsePickerHrs()
+				if(event.key === "Enter" && isUp) {
+					this.skipHours()
+				}
+				console.log(this.selHrs, this.selEndHrs)
 			},
 			hideItmSel(event) { 
 				if(!this.pickerVisible) return
@@ -547,15 +693,26 @@
 				this.parsePickerDt()
 			},
 			switchPicker(ind = this.pickerViewInd) {
-				if(ind===1) this.pickerViewInd = 2 
-				else this.pickerViewInd = 1
+				if(ind===0) this.pickerViewInd = 1
+				else if(ind===1) this.pickerViewInd = 2 
+				else if(ind===2) this.pickerViewInd = 3
+				else this.pickerViewInd = this.hours ? 0 : 1
 				this.setPickerView()
 			},
 			navigatePicker(direction = 0) {
 				// 0=backwards, 1=forwars in (hours, months, years)
-				if(direction === 0) this.monthIncr--
-				else this.monthIncr++
+				if(this.pickerViewInd===1) {
+					if(direction === 0) this.monthIncr--
+					else this.monthIncr++
+				} else if(this.pickerViewInd===2) {
+					if(direction === 0) this.yearIncr--
+					else this.yearIncr++
+				} else {
+					if(direction === 0) this.yearSetIncr--
+					else this.yearSetIncr++
+				}
 				this.setPickerView()
+				this.yearIncr=0
 				this.monthIncr=0
 			},
 		},
@@ -571,11 +728,13 @@
 									class="outline-none outline-transparent text-black dark:text-white flex flex-row 
 									items-center justify-center w-32 h-8 rounded-sm hover:bg-black/10 dark:hover:bg-white/10">
 						<span class="text-sm">
+							<span v-if="pickerViewInd===0" v-text="'Hours'"></span>
 							<span v-if="pickerViewInd===1" v-text="(!this.startDSel && this.startYSel ? this.selM : this.selEndM ) + ' ' + (!this.startDSel && this.startYSel ? this.selY : this.selEndY)"></span>
-							<span v-if="pickerViewInd===2" v-text="yrSelStart + ' - ' + yrSelEnd"></span>
+							<span v-if="pickerViewInd===2" v-text="(!this.startDSel && this.startYSel ? this.selY : this.selEndY )"></span>
+							<span v-if="pickerViewInd===3" v-text="yrSelStart + ' - ' + yrSelEnd"></span>
 						</span>
-						<span class="block" v-bind:class="{'m-2':pickerViewInd!==2}"></span>
-						<span class="transform block origin-center opacity-50 " v-bind:class="{'rotate-0': pickerViewInd===2, 'rotate-180': pickerViewInd!==2}">
+						<span class="block" v-bind:class="{'m-2':pickerViewInd!==3}"></span>
+						<span class="transform block origin-center opacity-50 " v-bind:class="{'rotate-0': pickerViewInd===3, 'rotate-180': pickerViewInd!==3}">
 							<span class="ml-4 w-2 h-2 border-b-[0.5rem] border-r-[0.5rem] transform block -rotate-45" 
 										style="border-bottom-color: currentColor;border-right-color: transparent"></span>
 						</span>
@@ -597,57 +756,99 @@
 						 v-bind:class="{'mt-4': pickerViewInd===1, 'mt-12': pickerViewInd!==1}">
 					<span v-if="pickerViewInd===1" v-for="d in weekDys" v-text="d" class="w-[55px] py-2 flex items-center justify-center"></span>
 				</div>
-				<div class="flex flex-col text-black dark:text-white" 
-						 v-bind:class="{'px-4 py-2': pickerViewInd===2, 'py-4 mt-8': pickerViewInd===1}">
-					<div v-for="set in pickerViewData"
-							 class="flex flex-row justify-between ">
-						<div v-for="item in set" 
-								 class="flex flex-row items-center justify-center h-10 py-1" 
-								 v-on:click="item.item>0? selectPickerItm(item) : null"
-								 v-on:mouseenter="selectPickerItm(item, true)"
-								 v-bind:class="{
-								 'opacity-50 pointer-events-none': !item.available, 
-								 'w-[55px]' : pickerViewInd===1,
-								 'flex-auto' : pickerViewInd===2}">
-							<div class="h-full w-1/2"
-									 v-bind:class="{
-									 'bg-black/10 dark:bg-white/10': (item.inRange || (item.isEnd && crntDelta>0)) && rangedInp && !startDSel,
-									 'border-t border-b border-dashed border-black dark:border-white': 
-										(item.inRange || (item.isEnd && crntDelta>0)) && rangedInp && startDSel 
-										&& ( (item.item !== selY && item.item !== selEndY) || 
-										(selY !== selEndY && (item.item === selY || item.item === selEndY)) ),
-									 }"></div>
-							<div v-show="item.item>0" 
-									 v-bind:class="{
-									 'ring-offset-1 ring-1 ring-black dark:ring-white':item.actual, 
-									 'bg-black/20 dark:bg-white/20': item.selected && item.available, 
-									 'hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-sm cursor-pointer': item.item>0 && item.available,
-									 'w-8 -ml-8 transform translate-x-4' : pickerViewInd===1,
-									 'w-12 -ml-12 transform translate-x-6' : pickerViewInd===2
-									 }"
-									 class="rounded-full h-8 flex flex-col items-center justify-center">
-								<div class="flex flex-row h-full w-full">
-									<div class="h-full w-1/2 rounded-l-full" 
-											 v-bind:class="{
-											 'bg-black/10 dark:bg-white/10': item.isStart && crntDelta>0 && rangedInp && !startDSel,
-											 'border-t border-b border-l border-dashed border-black dark:border-white': item.isStart && crntDelta>0 && rangedInp && startDSel,
-											 }"></div>
-									<div class="h-full w-1/2 rounded-r-full"
-											 v-bind:class="{
-											 'bg-black/10 dark:bg-white/10': item.isEnd && crntDelta>0 && rangedInp && !startDSel,
-											 'border-t border-b border-r border-dashed border-black dark:border-white': item.isEnd && crntDelta>0 && rangedInp && startDSel,
-											 }"></div>
-								</div>
-								<div class="w-full h-full -mt-8 flex items-center justify-center" v-text="item.item > 0 ? item.item : ''"></div>
+				<div class="flex flex-col h-full text-black dark:text-white" 
+						 v-bind:class="{'px-4 py-2': pickerViewInd===3, 'py-4 mt-8': pickerViewInd===1}">
+					<div v-if="pickerViewInd === 0" class="h-full flex flex-col">
+						<div class="z-10 h-10 w-full -mb-10 flex flex-row-reverse items-center">
+							<div v-on:click="skipHours()" class="h-full w-[fit-content] flex items-center mr-4 opacity-50 hover:opacity-100 cursor-pointer">
+								<span class="underline text-sm">skip</span>
 							</div>
-							<div class="h-full w-1/2"
+						</div>			
+						<div class="flex flex-col h-full justify-center">
+							<div class="flex flex-row items-center justify-center -mt-12 py-4 opacity-75">
+								<span v-text="startDSel ? selPickerDt : selEndPickerDt"></span>
+								<span class="w-4"></span>
+								<span v-text="startDSel ? selHrs : selEndHrs"></span>
+							</div>
+							<div class="flex flex-row items-center justify-center">
+								<div class="w-20 overflow-hidden">
+									<input ref="inpH" type="number" placeholder="hh" min="0" max="23"
+											   v-on:keydown="getHours($refs.inpH, $event)" v-on:keyup="getHours($refs.inpH, $event, true)"
+												 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+								</div>
+								<span class="mx-2 text-lg">:</span>
+								<div class="w-20 overflow-hidden">
+									<input ref="inpM" type="number" placeholder="mm" min="0" max="59"
+												 v-on:keydown="getMinutes($refs.inpM, $event)" v-on:keyup="getMinutes($refs.inpM, $event, true)"
+												 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+								</div>
+								<span class="mx-2 text-lg">:</span>
+								<div class="w-20 overflow-hidden">
+									<input ref="inpS" type="number" placeholder="ss" min="0" max="59"
+												 v-on:keydown="getSeconds($refs.inpS, $event)" v-on:keyup="getSeconds($refs.inpS, $event, true)"
+												 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+								</div>
+							</div>
+						</div>
+					</div>
+					<div v-show="pickerViewInd !== 0" 
+							 v-bind:class="{'mt-8': pickerViewInd===2}">
+						<div v-for="set in pickerViewData"
+								 class="flex flex-row justify-between ">
+							<div v-for="item in set" 
+									 class="flex flex-row items-center justify-center py-1" 
+									 v-on:click="item.item>0? selectPickerItm(item) : null"
+									 v-on:mouseenter="selectPickerItm(item, true)"
 									 v-bind:class="{
-									 'bg-black/10 dark:bg-white/10': (item.inRange || (item.isStart && crntDelta>0)) && rangedInp && !startDSel,
-									 'border-t border-b border-dashed border-black dark:border-white': 
-										(item.inRange || (item.isStart && crntDelta>0)) && rangedInp && startDSel 
-										&& ( (item.item !== selY && item.item !== selEndY) || 
-										(selY !== selEndY && (item.item === selY || item.item === selEndY)) ),
-									 }"></div>
+									 'opacity-50 pointer-events-none': !item.available, 
+									 'w-[55px]' : pickerViewInd===1,
+									 'h-10' : pickerViewInd!==2,
+									 'my-1 h-12' : pickerViewInd===2,
+									 'flex-auto' : pickerViewInd!==1}">
+								<div class="h-full w-1/2"
+										 v-bind:class="{
+										 'bg-black/10 dark:bg-white/10': (item.inRange || (item.isEnd && crntDelta>0)) && rangedInp && !startDSel,
+										 'border-t border-b border-dashed border-black dark:border-white': 
+											(item.inRange || (item.isEnd && crntDelta>0)) && rangedInp && startDSel 
+											&& ( (item.item !== selY && item.item !== selEndY) || 
+											(selY !== selEndY && (item.item === selY || item.item === selEndY)) ),
+										 }"></div>
+								<div v-show="item.item>0" 
+										 v-bind:class="{
+										 'ring-offset-1 ring-1 ring-black dark:ring-white':item.actual, 
+										 'bg-black/20 dark:bg-white/20': item.selected && item.available, 
+										 'hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-sm cursor-pointer': item.item>0 && item.available,
+										 'w-8 -ml-8 transform translate-x-4' : pickerViewInd===1,
+										 'w-12 -ml-12 transform translate-x-6' : pickerViewInd!==1,
+										 'h-8' : pickerViewInd!==2,
+										 'h-10' : pickerViewInd===2,
+										 }"
+										 class="rounded-full flex flex-col items-center justify-center">
+									<div class="flex flex-row h-full w-full">
+										<div class="h-full w-1/2 rounded-l-full" 
+												 v-bind:class="{
+												 'bg-black/10 dark:bg-white/10': item.isStart && crntDelta>0 && rangedInp && !startDSel,
+												 'border-t border-b border-l border-dashed border-black dark:border-white': item.isStart && crntDelta>0 && rangedInp && startDSel,
+												 }"></div>
+										<div class="h-full w-1/2 rounded-r-full"
+												 v-bind:class="{
+												 'bg-black/10 dark:bg-white/10': item.isEnd && crntDelta>0 && rangedInp && !startDSel,
+												 'border-t border-b border-r border-dashed border-black dark:border-white': item.isEnd && crntDelta>0 && rangedInp && startDSel,
+												 }"></div>
+									</div>
+									<div class="w-full h-full flex items-center justify-center" 
+											 v-bind:class="{[pickerViewInd===2 ? '-mt-10' : '-mt-8']: true}"
+											 v-text="item.itemStr ? item.itemStr : (item.item > 0 ? item.item : '')"></div>
+								</div>
+								<div class="h-full w-1/2"
+										 v-bind:class="{
+										 'bg-black/10 dark:bg-white/10': (item.inRange || (item.isStart && crntDelta>0)) && rangedInp && !startDSel,
+										 'border-t border-b border-dashed border-black dark:border-white': 
+											(item.inRange || (item.isStart && crntDelta>0)) && rangedInp && startDSel 
+											&& ( (item.item !== selY && item.item !== selEndY) || 
+											(selY !== selEndY && (item.item === selY || item.item === selEndY)) ),
+										 }"></div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -1259,6 +1460,10 @@
 			},
 		},
 	})
+	</script>
+	<script src="https://rmkesper.github.io/web-components/tooltip.js"></script>
+	<script>
+	(new ToolTip()).add()
 	</script>
 	<script>
 	function download(){
