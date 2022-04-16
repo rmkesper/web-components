@@ -112,45 +112,46 @@
 			<pre class="ml-12 my-4">&lt;input-area [...]>&lt;/input-area ><br>&lt;dropdown-datepicker [...]>&lt;/dropdown-datepicker></pre>
 			
 								
-			<div class="m-12 flex flex-row items-center">
-				<div class="">
-					<div id="tglpk" class="hidden">
-						<button class="z-10 outline-none outline-transparent h-[1.5em] w-[1.5em] min-w-[1.5em] rounded-full hover:bg-black/10 focus:bg-back/20 
-										dark:focus:bg-white/20 dark:hover:bg-white/10 transition flex items-center justify-center">
-							<div class="h-[0.75em] w-[0.75em] border border-t-[0.25em] flex flex-row items-center justify-center border-current">
-								<div class="h-[0.5em] w-[0.4em] mx-[0.13em] transform -translate-y-[0.35em] bg-current" ></div>
-								<div class="h-[0.5em] w-[0.4em] mx-[0.13em] transform -translate-y-[0.35em] bg-current" ></div>
-							</div>
-						</button>
+			<div class="m-12 flex flex-col">
+				<div class="flex flex-row my-4">
+					<div class="text-sm underline mx-4 opacity-50 hover:opacity-75 transition cursor-pointer" v-on:click="pickerRanged = !pickerRanged">
+						toggle ranged
 					</div>
-					<input-area class=" w-96" 
-											id="inp_sm"
-											v-bind:label="'Select Date' + (pickerRanged ? ' Range' : '')"
-											v-bind:error="''"
-											v-bind:hint="''"
-											v-bind:iconPrefix1="tglpk"
-											v-bind:inputValue="inpPicker"
-											v-bind:theme="' fill'"
-											v-bind:isRequired="true"
-											v-bind:isValid="isPickerValid"
-											@keyup="getPickerDt"
-											@prefix1="togglePickr"></input-area>
-					<dropdown-datepicker v-bind:pickerVisible="pickerVis"
-															 v-bind:inputValue="inpPicker"
-															 v-bind:inputArea="inp_sm"
-															 v-bind:allowedPickerRange="pickerAllowedRange"
-															 v-bind:hours="pickerHours"
-															 v-bind:ranged="pickerRanged"
-															 @validate="validatePicker"
-															 @select="getPickerDt"
-															 @toggle="togglePickr"></dropdown-datepicker>
+					<div class="text-sm underline opacity-50 hover:opacity-75 transition cursor-pointer" v-on:click="pickerHours = !pickerHours">
+						toggle hours
+					</div>
 				</div>
-				<div class="text-sm underline mx-4 opacity-50 hover:opacity-75 transition cursor-pointer" v-on:click="pickerRanged = !pickerRanged">
-					toggle ranged
+				<div id="tglpk" class="hidden">
+					<button class="z-10 outline-none outline-transparent h-[1.5em] w-[1.5em] min-w-[1.5em] rounded-full hover:bg-black/10 focus:bg-back/20 
+									dark:focus:bg-white/20 dark:hover:bg-white/10 transition flex items-center justify-center">
+						<div class="h-[0.75em] w-[0.75em] border border-t-[0.25em] flex flex-row items-center justify-center border-current">
+							<div class="h-[0.5em] w-[0.4em] mx-[0.13em] transform -translate-y-[0.35em] bg-current" ></div>
+							<div class="h-[0.5em] w-[0.4em] mx-[0.13em] transform -translate-y-[0.35em] bg-current" ></div>
+						</div>
+					</button>
 				</div>
-				<div class="text-sm underline opacity-50 hover:opacity-75 transition cursor-pointer" v-on:click="pickerHours = !pickerHours">
-					toggle hours
-				</div>
+				<input-area class="transform transition-all" 
+										v-bind:class="{'w-96': pickerRanged && pickerHours, 'w-56': !pickerRanged && !pickerHours, 'w-80': !pickerRanged && pickerHours}"
+										id="inp_sm"
+										v-bind:label="'Select Date' + (pickerRanged ? ' Range' : '')"
+										v-bind:error="''"
+										v-bind:hint="''"
+										v-bind:iconPrefix1="tglpk"
+										v-bind:inputValue="inpPicker"
+										v-bind:theme="' fill'"
+										v-bind:isRequired="true"
+										v-bind:isValid="isPickerValid"
+										@keyup="getPickerDt"
+										@prefix1="togglePickr"></input-area>
+				<dropdown-datepicker v-bind:pickerVisible="pickerVis"
+														 v-bind:inputValue="inpPicker"
+														 v-bind:inputArea="inp_sm"
+														 v-bind:allowedPickerRange="pickerAllowedRange"
+														 v-bind:hours="pickerHours"
+														 v-bind:ranged="pickerRanged"
+														 @validate="validatePicker"
+														 @select="getPickerDt"
+														 @toggle="togglePickr"></dropdown-datepicker>
 			</div>
 		</div>
 	</body>
@@ -1453,8 +1454,8 @@
 			pickerAllowedRange: "03/12/2017 - 08/15/2024",
 			pickerVis: false,
 			isPickerValid: true,
-			pickerRanged: true,
-			pickerHours: true,
+			pickerRanged: false,
+			pickerHours: false,
 			drpdwnVis: false,
 			isVal: true,
 			selectInd: 0,
