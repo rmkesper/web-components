@@ -130,28 +130,30 @@
 						</div>
 					</button>
 				</div>
-				<input-area class="transform transition-all" 
-										v-bind:class="{'w-96': pickerRanged && pickerHours, 'w-56': !pickerRanged && !pickerHours, 'w-80': (!pickerRanged && pickerHours) || (pickerRanged && !pickerHours)}"
-										id="inp_sm"
-										v-bind:label="'Select Date' + (pickerRanged ? ' Range' : '')"
-										v-bind:error="''"
-										v-bind:hint="''"
-										v-bind:iconPrefix1="tglpk"
-										v-bind:inputValue="inpPicker"
-										v-bind:isRequired="true"
-										v-bind:isValid="isPickerValid"
-										@keyup="getPickerDt"
-										@prefix1="togglePickr"></input-area>
-				<dropdown-datepicker v-bind:pickerVisible="pickerVis"
-														 v-bind:inputValue="inpPicker"
-														 v-bind:inputArea="inp_sm"
-														 v-bind:allowedPickerRange="pickerAllowedRange"
-														 v-bind:hours="pickerHours"
-														 v-bind:ranged="pickerRanged"
-														 v-bind:css="'bg-sky-500'"
-														 @validate="validatePicker"
-														 @select="getPickerDt"
-														 @toggle="togglePickr"></dropdown-datepicker>
+				<div class="text-[14px]">
+					<input-area class="transform transition-all" 
+											v-bind:class="{'w-96': pickerRanged && pickerHours, 'w-56': !pickerRanged && !pickerHours, 'w-80': (!pickerRanged && pickerHours) || (pickerRanged && !pickerHours)}"
+											id="inp_sm"
+											v-bind:label="'Select Date' + (pickerRanged ? ' Range' : '')"
+											v-bind:error="''"
+											v-bind:hint="''"
+											v-bind:iconPrefix1="tglpk"
+											v-bind:inputValue="inpPicker"
+											v-bind:isRequired="true"
+											v-bind:isValid="isPickerValid"
+											@keyup="getPickerDt"
+											@prefix1="togglePickr"></input-area>
+					<dropdown-datepicker v-bind:pickerVisible="pickerVis"
+															 v-bind:inputValue="inpPicker"
+															 v-bind:inputArea="inp_sm"
+															 v-bind:allowedPickerRange="pickerAllowedRange"
+															 v-bind:hours="pickerHours"
+															 v-bind:ranged="pickerRanged"
+															 v-bind:css="'bg-sky-500'"
+															 @validate="validatePicker"
+															 @select="getPickerDt"
+															 @toggle="togglePickr"></dropdown-datepicker>
+				</div>
 			</div>
 		</div>
 	</body>
@@ -802,113 +804,113 @@
 		`
 		<div v-show="pickerVisible"
 				 ref="selItm"
-				 class="z-20 w-80 h-96 flex flex-col -mb-96 transform  rounded-sm">
+				 class="z-20 w-[20em] h-[24em] flex flex-col -mb-[24em] transform  rounded-sm">
 			<div class="toggle-in z-10 flex flex-col w-full h-full bg-white dark:bg-gray-800 shadow-lg border border-gray-100 dark:border-gray-700 origin-top-left">
 				<!--Picker Navigation Row-->
-				<div class="flex flex-row w-full items-center justify-between p-4">
+				<div class="flex flex-row w-full items-center justify-between p-[1em]">
 					<button v-on:click="switchPicker()" v-on:contextmenu="$event.preventDefault(); switchPicker(-1)"
-									class="outline-none outline-transparent text-black dark:text-white flex flex-row items-center justify-center w-32 h-8 rounded-sm hover:bg-black/10 dark:hover:bg-white/10">
+									class="outline-none outline-transparent text-black dark:text-white flex flex-row items-center justify-center w-[8em] h-[2em] rounded-sm hover:bg-black/10 dark:hover:bg-white/10">
 						<span class="text-sm">
 							<span v-if="pickerViewInd===0" v-text="'Hours'"></span>
 							<span v-if="pickerViewInd===1" v-text="(!this.startDSel && this.startYSel ? this.selM : this.selEndM ) + ' ' + (!this.startDSel && this.startYSel ? this.selY : this.selEndY)"></span>
 							<span v-if="pickerViewInd===2" v-text="(!this.startDSel && this.startYSel ? this.selY : this.selEndY )"></span>
 							<span v-if="pickerViewInd===3" v-text="yrSelStart + ' - ' + yrSelEnd"></span>
 						</span>
-						<span class="block" v-bind:class="{'m-2':pickerViewInd!==3}"></span>
+						<span class="block" v-bind:class="{'m-[0.5em]':pickerViewInd!==3}"></span>
 						<span class="transform block origin-center opacity-50 " v-bind:class="{'rotate-0': pickerViewInd===3, 'rotate-180': pickerViewInd!==3}">
-							<span class="ml-4 w-2 h-2 border-b-[0.5rem] border-r-[0.5rem] transform block -rotate-45" 
+							<span class="ml-[1em] w-[0.5em] h-[0.5em] border-b-[0.5em] border-r-[0.5em] transform block -rotate-45" 
 										style="border-bottom-color: currentColor;border-right-color: transparent"></span>
 						</span>
 					</button>
 					<div class="flex flex-row" v-if="pickerViewInd!==0">
 						<button v-on:click="navigatePicker(1)"
-										class="opacity-50 mx-1 w-8 h-8 rounded-full outline-none outline-transparent flex flex-col items-center justify-center 
+										class="opacity-50 mx-[0.25em] w-[2em] h-[2em] rounded-full outline-none outline-transparent flex flex-col items-center justify-center 
 										hover:bg-black/10 dark:hover:bg-white/10 focus:bg-black/20 dark:focus:bg-white/20">
-							<span class="block w-3 h-3 border-l-2 border-b-2 border-black dark:border-white transform rotate-45 translate-x-0.5"></span>
+							<span class="block w-[0.75em] h-[0.75em] border-l-[0.13em] border-b-[0.13em] border-black dark:border-white transform rotate-45 translate-x-[0.125em]"></span>
 						</button>
 						<button v-on:click="navigatePicker()"
-										class="opacity-50 mx-1 w-8 h-8 rounded-full outline-none outline-transparent flex flex-col items-center justify-center 
+										class="opacity-50 mx-[0.25em] w-[2em] h-[2em] rounded-full outline-none outline-transparent flex flex-col items-center justify-center 
 										hover:bg-black/10 dark:hover:bg-white/10 focus:bg-black/20 dark:focus:bg-white/20">
-							<span class="block w-3 h-3 border-r-2 border-t-2 border-black dark:border-white transform rotate-45 -translate-x-0.5"></span>
+							<span class="block w-[0.75em] h-[0.75em] border-r-[0.13em] border-t-[0.13em] border-black dark:border-white transform rotate-45 -translate-x-[0.125em]"></span>
 						</button>
 					</div>
 				</div>
-				<div class="border-b border-black opacity-50 dark:border-white flex flex-row items-center justify-between text-xs text-black dark:text-white"
-						 v-bind:class="{'mt-4': pickerViewInd===1, 'mt-12': pickerViewInd!==1}">
-					<span v-if="pickerViewInd===1" v-for="d in weekDys" v-text="d" class="w-[55px] py-2 flex items-center justify-center"></span>
+				<div class="border-b-[0.07em] border-black opacity-50 dark:border-white flex flex-row items-center justify-between text-xs text-black dark:text-white"
+						 v-bind:class="{'mt-[1em]': pickerViewInd===1, 'mt-[3em]': pickerViewInd!==1}">
+					<span v-if="pickerViewInd===1" v-for="d in weekDys" v-text="d" class="w-[3.44em] py-[0.5em] flex items-center justify-center"></span>
 				</div>
 				<div class="flex flex-col h-full text-black dark:text-white" 
-						 v-bind:class="{'px-4 py-2': pickerViewInd===3, 'py-4 mt-2': pickerViewInd===1}">
+						 v-bind:class="{'px-[1em] py-[0.5em]': pickerViewInd===3, 'py-[1em] mt-[0.5em]': pickerViewInd===1}">
 					<div v-if="pickerViewInd === 0" class="h-full flex flex-col">
-						<div class="z-10 h-10 w-full -mb-10 flex flex-row-reverse items-center">
-							<div v-on:click="skipHours()" class="h-full w-[fit-content] flex items-center mr-6 opacity-50 hover:opacity-100 cursor-pointer">
+						<div class="z-10 h-[2.5em] w-full -mb-[2.5em] flex flex-row-reverse items-center">
+							<div v-on:click="skipHours()" class="h-full w-[fit-content] flex items-center mr-[1.5em] opacity-50 hover:opacity-100 cursor-pointer">
 								<span class="underline text-sm select-none">back</span>
 							</div>
 						</div>			
 						<div class="flex flex-col h-full justify-center">
 							<div class="flex flex-row items-center justify-center">
 								<div class="flex flex-col items-center justify-center">
-									<div class="w-4 h-4 border-r-4 border-t-4 transform -rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrHrs(1)"></div>
-									<div class="w-20 overflow-hidden">
+									<div class="w-[1em] h-[1em] border-r-[0.26em] border-t-[0.26em] transform -rotate-45 my-[1em] cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrHrs(1)"></div>
+									<div class="w-[5em] overflow-hidden">
 										<input ref="inpH" type="number" placeholder="hh" min="0" max="23" v-bind:value="startDSel ? selH : selEndH"
 													 v-on:keydown="getHours($refs.inpH, $event)" v-on:keyup="getHours($refs.inpH, $event, true)"
-													 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+													 class="text-center w-[7em] bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-[0.5em] pr-[0.5em] outline-none outline-transparent">
 									</div>
-									<div class="w-4 h-4 border-r-4 border-b-4 transform rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrHrs(-1)"></div>
+									<div class="w-[1em] h-[1em] border-r-[0.26em] border-b-[0.26em] transform rotate-45 my-[1em] cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrHrs(-1)"></div>
 								</div>
-								<span class="mx-2 text-lg select-none">:</span>
+								<span class="mx-[0.5em] text-lg select-none">:</span>
 								<div class="flex flex-col items-center justify-center">
-									<div class="w-4 h-4 border-r-4 border-t-4 transform -rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrMns(1)"></div>
-									<div class="w-20 overflow-hidden">
+									<div class="w-[1em] h-[1em] border-r-[0.26em] border-t-[0.26em] transform -rotate-45 my-[1em] cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrMns(1)"></div>
+									<div class="w-[5em] overflow-hidden">
 										<input ref="inpM" type="number" placeholder="mm" min="0" max="59" v-bind:value="startDSel ? selm : selEndm"
 													 v-on:keydown="getMinutes($refs.inpM, $event)" v-on:keyup="getMinutes($refs.inpM, $event, true)"
-													 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+													 class="text-center w-[7em] bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-[0.5em] pr-[0.5em] outline-none outline-transparent">
 									</div>
-									<div class="w-4 h-4 border-r-4 border-b-4 transform rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrMns(-1)"></div>
+									<div class="w-[1em] h-[1em] border-r-[0.26em] border-b-[0.26em] transform rotate-45 my-[1em] cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrMns(-1)"></div>
 								</div>
-								<span class="mx-2 text-lg select-none">:</span>
+								<span class="mx-[0.5em] text-lg select-none">:</span>
 								<div class="flex flex-col items-center justify-center">
-									<div class="w-4 h-4 border-r-4 border-t-4 transform -rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrScs(1)"></div>
-									<div class="w-20 overflow-hidden">
+									<div class="w-[1em] h-[1em] border-r-[0.26em] border-t-[0.26em] transform -rotate-45 my-[1em] cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrScs(1)"></div>
+									<div class="w-[5em] overflow-hidden">
 										<input ref="inpS" type="number" placeholder="ss" min="0" max="59" v-bind:value="startDSel ? sels : selEnds"
 													 v-on:keydown="getSeconds($refs.inpS, $event)" v-on:keyup="getSeconds($refs.inpS, $event, true)"
-													 class="text-center w-28 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-2 pr-2 outline-none outline-transparent">
+													 class="text-center w-[7em] bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 py-[0.5em] pr-[0.5em] outline-none outline-transparent">
 									</div>
-									<div class="w-4 h-4 border-r-4 border-b-4 transform rotate-45 my-4 cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrScs(-1)"></div>
+									<div class="w-[1em] h-[1em] border-r-[0.26em] border-b-[0.26em] transform rotate-45 my-[1em] cursor-pointer opacity-50 hover:opacity-100 transition" v-on:click="incrScs(-1)"></div>
 								</div>
 							</div>
 						</div>
 					</div>
 					<div v-show="pickerViewInd !== 0" 
-							 v-bind:class="{'mt-8': pickerViewInd===2}">
+							 v-bind:class="{'mt-[2em]': pickerViewInd===2}">
 						<div v-for="set in pickerViewData"
 								 class="flex flex-row justify-between ">
 							<div v-for="item in set" 
-									 class="flex flex-row items-center justify-center py-1" 
+									 class="flex flex-row items-center justify-center py-[0.25em]" 
 									 v-on:click="item.item>0? selectPickerItm(item) : null"
 									 v-on:mouseenter="selectPickerItm(item, true)"
 									 v-bind:class="{
 									 'opacity-50 pointer-events-none': !item.available, 
-									 'w-[55px]' : pickerViewInd===1,
-									 'h-10' : pickerViewInd!==2,
-									 'my-1 h-12' : pickerViewInd===2,
+									 'w-[3.44em]' : pickerViewInd===1,
+									 'h-[2.5em]' : pickerViewInd!==2,
+									 'my-[0.25em] h-[3em]' : pickerViewInd===2,
 									 'flex-auto' : pickerViewInd!==1}">
 								<div class="h-full w-1/2"
 										 v-bind:class="{
 										 [css + ' opacity-50']: (item.inRange || (item.isEnd && crntDelta>0)) && ranged && !startDSel,
-										 'border-t border-b border-dashed border-black dark:border-white': 
+										 'border-t-[0.07em] border-b-[0.07em] border-dashed border-black dark:border-white': 
 											(item.inRange || (item.isEnd && crntDelta>0)) && ranged && startDSel 
 											&& ( (item.item !== selY && item.item !== selEndY) || 
 											(selY !== selEndY && (item.item === selY || item.item === selEndY)) ),
 										 }"></div>
 								<div v-show="item.item>0" 
 										 v-bind:class="{
-										 'ring-offset-1 ring-1 ring-black dark:ring-white':item.actual, 
+										 'ring-offset-[0.07em] ring-[0.07em] ring-black dark:ring-white':item.actual, 
 										 'hover:bg-black/20 dark:hover:bg-white/20 transition-colors text-sm cursor-pointer': item.item>0 && item.available,
-										 'w-8 -ml-8 transform translate-x-4' : pickerViewInd===1,
-										 'w-12 -ml-12 transform translate-x-6' : pickerViewInd!==1,
-										 'h-8' : pickerViewInd!==2,
-										 'h-10' : pickerViewInd===2,
+										 'w-[2em] -ml-[2em] transform translate-x-[1em]' : pickerViewInd===1,
+										 'w-[3em] -ml-[3em] transform translate-x-[1.5em]' : pickerViewInd!==1,
+										 'h-[2em]' : pickerViewInd!==2,
+										 'h-[2.5em]' : pickerViewInd===2,
 										 }"
 										 class="z-10 rounded-full flex flex-col items-center justify-center">
 									<div class="w-full h-full rounded-full absolute opacity-100 z-[-1]" v-bind:class="{[css]:item.selected && item.available}"></div>
@@ -916,22 +918,22 @@
 										<div class="h-full w-1/2 rounded-l-full" 
 												 v-bind:class="{
 												 [css + ' opacity-50']: item.isStart && crntDelta>0 && ranged && !startDSel,
-												 'border-t border-b border-l border-dashed border-black dark:border-white': item.isStart && crntDelta>0 && ranged && startDSel,
+												 'border-t-[0.07em] border-b-[0.07em] border-l-[0.07em] border-dashed border-black dark:border-white': item.isStart && crntDelta>0 && ranged && startDSel,
 												 }"></div>
 										<div class="h-full w-1/2 rounded-r-full"
 												 v-bind:class="{
 												 [css + ' opacity-50']: item.isEnd && crntDelta>0 && ranged && !startDSel,
-												 'border-t border-b border-r border-dashed border-black dark:border-white': item.isEnd && crntDelta>0 && ranged && startDSel,
+												 'border-t-[0.07em] border-b-[0.07em] border-r-[0.07em] border-dashed border-black dark:border-white': item.isEnd && crntDelta>0 && ranged && startDSel,
 												 }"></div>
 									</div>
 									<div class="w-full h-full flex items-center justify-center z-20" 
-											 v-bind:class="{[pickerViewInd===2 ? '-mt-10' : '-mt-8']: true}"
+											 v-bind:class="{[pickerViewInd===2 ? '-mt-[2.5em]' : '-mt-[2em]']: true}"
 											 v-text="item.itemStr ? item.itemStr : (item.item > 0 ? item.item : '')"></div>
 								</div>
 								<div class="h-full w-1/2"
 										 v-bind:class="{
 										 [css + ' opacity-50']: (item.inRange || (item.isStart && crntDelta>0)) && ranged && !startDSel,
-										 'border-t border-b border-dashed border-black dark:border-white': 
+										 'border-t-[0.07em] border-b-[0.07em] border-dashed border-black dark:border-white': 
 											(item.inRange || (item.isStart && crntDelta>0)) && ranged && startDSel 
 											&& ( (item.item !== selY && item.item !== selEndY) || 
 											(selY !== selEndY && (item.item === selY || item.item === selEndY)) ),
