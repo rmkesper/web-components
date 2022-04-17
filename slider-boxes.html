@@ -55,15 +55,127 @@
 			<div class="ml-12 my-8 flex items-center"
 					 v-on:click="slider2 = !slider2">
 				<slider-toggle class="text-[24px]" 
-											 v-bind:css="'bg-yellow-400'"
+											 v-bind:css="'bg-emerald-600'"
 											 v-bind:active="slider2"
 											 v-bind:theme="'outline'"></slider-toggle>
 				<span class="ml-4">Option {{slider2 ? 'en' : 'dis'}}abled</span>
 			</div>
 			
+			<pre class="ml-12 my-8">&lt;multi-checkbox [...]>&lt;/multi-checkbox></pre>
+			
+			<div class="ml-12 my-8 flex flex-col">
+				<div class="flex flex-row items-center" 
+						 v-on:click="boxList.filter( b => b.selected).length < boxList.length ? boxList.forEach( b => b.selected = true) : boxList.forEach( b => b.selected = false)">
+					<multi-checkbox v-bind:selectedAll="boxList.filter( b => b.selected).length === boxList.length"
+													v-bind:selectedNone="boxList.filter( b => b.selected).length === 0"
+													v-bind:css="'text-sky-500'"></multi-checkbox>
+					<span class="ml-4 mr-2 text-sm text-sky-400" v-text="boxList.filter( b => b.selected).length"></span>
+					<span class="mr-4 text-sm" v-text="'selected'"></span>
+				</div>
+				<div v-for="itm of boxList" v-on:click="itm.selected = !itm.selected" 
+						 class="flex flex-row items-center py-2 hover:bg-black/5 dark:hover:bg-white/5 transition">
+					<multi-checkbox v-bind:selected="itm.selected"
+													v-bind:css="'text-sky-500'"></multi-checkbox>
+					<span class="mx-4" v-text="itm.name"></span>
+				</div>
+			</div>
+			
+			<pre class="ml-12 my-8">&lt;radio-button [...]>&lt;/radio-button></pre>
+			
+			<div class="ml-12 my-8 flex flex-col">
+				<div v-for="itm of radioList" v-on:click="radioList.forEach( l => l.selected = false); itm.selected = true" 
+						 class="flex flex-row items-center py-2 hover:bg-black/5 dark:hover:bg-white/5 transition">
+					<radio-button v-bind:selected="itm.selected"
+												v-bind:css="'text-sky-500'"></radio-button>
+					<span class="mx-4" v-text="itm.name"></span>
+				</div>
+			</div>
 		</div>
 	</body>
 	<script>
+	Vue.component("radio-button", {
+		props: {
+			css: { default() { return this.$attrs.css ?? "text-gray-700 dark:text-gray-500" }},
+			selected: { default() { return typeof this.$attrs.selecte !== "undefined" ? this.$attrs.selected : false }},
+		},
+		watch: {
+			'$attrs.css': function(n,o) { this.css = n },
+			'$attrs.selected': function(n,o) { this.selected = n },
+		},
+		template:
+		`
+		<button class="group outline-none outline-transparent w-[2.5em] h-[2.5em] flex flex-col items-center justify-center transition-all rounded-full">
+			<div class="w-[2.5em] h-[2.5em] -mb-[2.5em] transform -translate-y-[0.625em] rounded-full bg-current opacity-0 group-hover:opacity-25 transition" 
+					 v-bind:class="{[selected ? css : 'text-gray-500']:true}"></div>
+			<div class="w-[1.25em] h-[1.25em] flex items-center justify-center rounded-full border-[0.13em] border-current"
+					 v-bind:class="{[selected ? css : 'text-gray-500']:true}">
+				<div class="transition-all duration-300 rounded-full"
+						 v-bind:class="{
+						 [css + ' bg-current']: selected,
+						 'w-[0.625em] h-[0.625em]': selected, 'w-0 h-0': !selected
+						 }"></div>
+			</div>
+		</button>
+		`
+	})
+	Vue.component("multi-checkbox", {
+		props: {
+			css: { default() { return this.$attrs.css ?? "text-gray-700 dark:text-gray-500" }},
+			// selected = itemsSelected>0 
+			selected: { default() { return typeof this.$attrs.selecte !== "undefined" ? this.$attrs.selected : false }},
+			// selectedAll = itemsSelected === selectList.length
+			selectedAll: { default() { return typeof this.$attrs.selectedall !== "undefined" ? this.$attrs.selectedall : null }},
+			// selectedNone = itemsSelected === 0
+			selectedNone: { default() { return typeof this.$attrs.selectednone !== "undefined" ? this.$attrs.selectednone : null }},
+		},
+		watch: {
+			'$attrs.css': function(n,o) { this.css = n },
+			'$attrs.selected': function(n,o) { this.selected = n },
+			'$attrs.selectedall': function(n,o) { this.selectedAll = n; this.getSelected() },
+			'$attrs.selectednone': function(n,o) { this.selectedNone = n; this.getSelected() },
+		},
+		data: () => ({ 
+			ckAllHovered: false,
+		}),
+		mounted: function()  {
+			this.getSelected()
+		},
+		methods: {
+			getSelected() {
+				this.selected = typeof this.selectedAll === "boolean" && typeof this.selectedNone === "boolean" ?
+					!this.selectedAll && !this.selectedNone : this.selected
+			}
+		},
+		template: 
+		`
+		<button v-on:mouseenter="ckAllHovered=true"
+					v-on:mouseleave="ckAllHovered=false"
+					class="group outline-none outline-transparent w-[2.5em] h-[2.5em] rounded-full flex flex-col items-center justify-center">
+			<div class="w-[2.5em] h-[2.5em] -mb-[2.5em] transform -translate-y-[0.75em] rounded-full bg-current opacity-0 group-hover:opacity-25 transition" 
+					 v-bind:class="{[selected || selectedAll ? css : 'text-gray-500']:true}"></div>
+			<span class="block border-[0.13em] rounded-sm border-current w-[1em] h-[1em]" 
+						v-bind:class="{'bg-current': selected || selectedAll, [selected || selectedAll ? css : 'text-gray-500']:true }"></span>
+						
+			<span v-if="typeof selectedAll === 'boolean' && typeof selectedNone === 'boolean'" 
+						class="flex flex-col items-center justify-center transition-all h-[1em] -mt-[1em] w-[1em] overflow-hidden">
+				<span class="w-[0.75em] h-0 border-b-[0.13em] border-white transition-all duration-500 transform scale-75"
+							v-bind:class="{'rotate-180': selectedAll || (ckAllHovered && !selectedAll && !selectedNone), 
+							'opacity-100': !selectedAll && !selectedNone && !(ckAllHovered && !selectedAll && !selectedNone),
+							'opacity-0': selectedNone || selectedAll || (ckAllHovered && !selectedAll && !selectedNone)}"></span>
+				<span class="block w-[0.5em] -mt-[1em] h-[1em] border-b-[0.13em] border-r-[0.13em] border-white transition-all 
+							transform duration-500 rotate-45 translate-y-[0.375em] translate-x-[0.05rem] scale-[0.6]"
+							v-bind:class="{'opacity-0': (!selectedAll && !selectedNone) || selectedNone, 'opacity-100': selectedAll || (ckAllHovered && !selectedAll && !selectedNone)}"></span>
+			</span>
+			<span v-if="typeof selectedAll !== 'boolean' || typeof selectedNone !== 'boolean'" 
+						class="flex items-center justify-center transition-all h-[1em] -mt-[1em] overflow-hidden duration-300"
+						v-bind:class="{'-ml-[0.5em] w-0': !selected, 'ml-0 w-[1em]': selected}">
+				<span class="block w-[0.5em] h-[1em] border-b-[0.13em] border-r-[0.13em] border-white transition-all transform duration-300 rotate-45 -translate-y-[0.05rem] scale-[0.6]"
+							v-bind:class="{'ml-[0.5em]': !selected, 'ml-0': selected}"></span>
+			</span>
+			
+		</button>
+		`
+	})
 	Vue.component("slider-toggle", {
 		props: {
 			css: { default() { return this.$attrs.css ?? "bg-sky-400"} },
@@ -105,8 +217,18 @@
 	new Vue({
 		el: "#main",
 		data: {
-			slider1: false,
-			slider2: true,
+			slider1: true,
+			slider2: false,
+			boxList: Array(
+				{ name: "Banana", selected: false },
+				{ name: "Apples", selected: false },
+				{ name: "Oranges", selected: false },
+			),
+			radioList: Array(
+				{ name: "Karrots", selected: false },
+				{ name: "Cucumber", selected: false },
+				{ name: "Spinach", selected: false },
+			),
 		},
 		methods: {
 			
