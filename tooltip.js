@@ -15,6 +15,7 @@ class ToolTip {
 			document.addEventListener("mousedown", function() { self.interactDown = true })
 			document.addEventListener("mouseup", function() { self.interactDown = false })
 			document.addEventListener("mousemove", function() {
+				console.log(self.interactDown)
 				if(!self.interactDown) return
 				for(let e of document.querySelectorAll("[data-tip-id]")) {
 					if(document.getElementById(e.getAttribute("data-tip-id")))
