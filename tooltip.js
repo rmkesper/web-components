@@ -12,8 +12,8 @@ class ToolTip {
 		let htmlCls = html.getAttribute("class")
 		let tipadd = "tooltip-add"
 		if(html && (!htmlCls || (htmlCls && htmlCls.indexOf(tipadd)<0)) ) {
-			document.addEventListener("mousedown", function() { self.interactDown = true })
-			document.addEventListener("mouseup", function() { self.interactDown = false })
+			document.addEventListener("mousedown", function() { self.interactDown = true });
+			document.addEventListener("mouseup", function() { self.interactDown = false });
 			document.addEventListener("mousemove", function() {
 				console.log(self.interactDown)
 				if(!self.interactDown) return
@@ -21,16 +21,16 @@ class ToolTip {
 					if(document.getElementById(e.getAttribute("data-tip-id")))
 						document.getElementById(e.getAttribute("data-tip-id")).remove()
 				}
-			})
-			document.addEventListener("touchstart", function() { self.interactDown = true })
-			document.addEventListener("touchend", function() { self.interactDown = false })
+			});
+			document.addEventListener("touchstart", function() { self.interactDown = true });
+			document.addEventListener("touchend", function() { self.interactDown = false });
 			document.addEventListener("touchmove", function() {
 				if(!self.interactDown) return
 				for(let e of document.querySelectorAll("[data-tip-id]")) {
 					if(document.getElementById(e.getAttribute("data-tip-id")))
 						document.getElementById(e.getAttribute("data-tip-id")).remove()
 				}
-			})
+			});
 			(new MutationObserver(function(mutations) {
 				let mutate = false;
 				for(let mutation of mutations) 
@@ -39,9 +39,9 @@ class ToolTip {
 						break;
 					}
 				if (mutate) (new ToolTip()).add(css)
-			})).observe(document.body, { characterDataOldValue: true, subtree: true, childList: true, characterData: true })
-			if(!htmlCls) html.setAttribute("class", tipadd)
-			else html.setAttribute("class", htmlCls + ' ' + tipadd)
+			})).observe(document.body, { characterDataOldValue: true, subtree: true, childList: true, characterData: true });
+			if(!htmlCls) html.setAttribute("class", tipadd);
+			else html.setAttribute("class", htmlCls + ' ' + tipadd);
 		}
 		let ts = document.querySelectorAll('[data-tip]')
 		for(let t of ts) {
