@@ -3,6 +3,7 @@
  * MIT License
  */
 class ToolTip {
+	interactDown = false
 	css = "bg-black/80 dark:bg-white/90 text-white dark:text-black text-xs px-2 py-1 rounded-sm shadow truncate"
 	add(css = this.css) {
 		this.css = css
@@ -11,6 +12,24 @@ class ToolTip {
 		let htmlCls = html.getAttribute("class")
 		let tipadd = "tooltip-add"
 		if(html && (!htmlCls || (htmlCls && htmlCls.indexOf(tipadd)<0)) ) {
+			document.addEventListener("mousedown", function() { self.interactDown = true })
+			document.addEventListener("mouseup", function() { self.interactDown = false })
+			document.addEventListener("mousemove", function() {
+				if(!self.interactDown) return
+				for(let e of document.querySelectorAll("[data-tip-id]")) {
+					if(document.getElementById(e.getAttribute("data-tip-id")))
+						document.getElementById(e.getAttribute("data-tip-id")).remove()
+				}
+			})
+			document.addEventListener("touchstart", function() { self.interactDown = true })
+			document.addEventListener("touchend", function() { self.interactDown = false })
+			document.addEventListener("touchmove", function() {
+				if(!self.interactDown) return
+				for(let e of document.querySelectorAll("[data-tip-id]")) {
+					if(document.getElementById(e.getAttribute("data-tip-id")))
+						document.getElementById(e.getAttribute("data-tip-id")).remove()
+				}
+			})
 			(new MutationObserver(function(mutations) {
 				let mutate = false;
 				for(let mutation of mutations) 
