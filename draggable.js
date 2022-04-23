@@ -51,6 +51,7 @@
 			}
 		}
 		dragStart(event, el, prnt){
+			if(!el.classList.contains("draggable")) return
 			this.dragActive = true
 			this.dragEl = el
 			this.dragElPrnt = prnt
@@ -68,6 +69,7 @@
 			this.dragEl.setAttribute("data-drag-event-y", startY)
 		}
 		drag(event){
+			if(!el.classList.contains("draggable")) return
 			if(!this.dragActive || !this.dragEl || !this.dragElPrnt) return
 			let elRect = this.dragEl.getBoundingClientRect()
 			let pRect = this.dragElPrnt.getBoundingClientRect()
