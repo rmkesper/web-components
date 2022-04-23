@@ -52,7 +52,9 @@
 		}
 		dragStart(event, el, prnt){
 			if(!el.classList.contains("draggable")) return
-			if(el.getBoundingClientRect().width+15 >= prnt.getBoundingClientRect().width) return
+			if(el.getBoundingClientRect().width+15 >= prnt.getBoundingClientRect().width
+			  || el.getBoundingClientRect().height+15 >= prnt.getBoundingClientRect().height
+			  ) return
 			this.dragActive = true
 			this.dragEl = el
 			this.dragElPrnt = prnt
@@ -72,7 +74,9 @@
 		drag(event){
 			if(!this.dragActive || !this.dragEl || !this.dragElPrnt) return
 			if(!this.dragEl.classList.contains("draggable")) return
-			if(this.dragEl.getBoundingClientRect().width+15 >= this.dragElPrnt.getBoundingClientRect().width) return
+			if(this.dragEl.getBoundingClientRect().width+15 >= this.dragElPrnt.getBoundingClientRect().width
+			  || this.dragEl.getBoundingClientRect().height+15 >= this.dragElPrnt.getBoundingClientRect().height
+			  ) return
 			let elRect = this.dragEl.getBoundingClientRect()
 			let pRect = this.dragElPrnt.getBoundingClientRect()
 			let allowX = !!this.dragEl.getAttribute("data-drag-x")
