@@ -91,7 +91,6 @@
 										v-bind:inputValue="inpDropdown"
 										v-bind:iconPrefix2="prefixIcon2"
 										v-bind:iconPrefix3="prefixIcon3"
-										v-bind:iconSuffix1="suffixIcon1"
 										v-bind:theme="' fill'"
 										v-bind:autocomplete="dropdownList"
 										v-bind:autocompleteVisible="drpdwnVis"
@@ -709,13 +708,14 @@
 				else this.togglePicker()
 			},
 			togglePicker(resetPckr = false, dt = "") {
+				let self = this
 				this.startDSel = false
 				this.startYSel = false
 				if(!this.$refs.selItm.getAttribute("id")) {
 					// initially bind the "outside element click detection"
 					this.$refs.selItm.setAttribute("id", this.selItmId)
-					document.addEventListener("mousedown", this.hideItmSel )
-					document.addEventListener("touchstart", this.hideItmSel )
+					document.addEventListener("mousedown", function(){ self.hideItmSel.call(self, event) }, false )
+					document.addEventListener("touchstart", function(){ self.hideItmSel.call(self, event) }, false )
 				}
 				this.pickerVisible = !this.pickerVisible
 				this.$emit("toggle", this.pickerVisible)
@@ -992,6 +992,7 @@
 			}
 		),
 		mounted: function() {
+			let self = this
 			this.id = this.id + '_' +  (new Date).getTime() + '_' + Math.floor(Math.random() * 9999)
 			this.inpComp = document.getElementById( (this.inputArea.id ?? this.inputArea) ) 
 			this.filteredDataList = JSON.parse(JSON.stringify(this.dataList))
@@ -1000,9 +1001,9 @@
 			if(!this.inpFld) return console.warn("Unable to connect to Input Area")
 			this.selectedIndex = this.dataList.findIndex( d => (d.name ?? d) === (this.selectedItem.name ?? this.selectedItem) )
 			if(this.inputValue.trim().length>0) this.filterDataList()
-			document.addEventListener("mousedown", this.hideItmSel )
-			document.addEventListener("touchstart", this.hideItmSel )
-			this.inpFld.addEventListener("keyup", this.handleKeyup )
+			document.addEventListener("mousedown", function(){ self.hideItmSel.call(self, event) }, false )
+			document.addEventListener("touchstart", function(){ self.hideItmSel.call(self, event) }, false )
+			this.inpFld.addEventListener("keyup", function(){ self.handleKeyup.call(self, event) }, false )
 			setTimeout( () => {
 				this.resize()
 				this.ml = this.inpFld.getBoundingClientRect().x - this.inpComp.getBoundingClientRect().x
@@ -1225,6 +1226,7 @@
 							this.getFldH();
 						} )).observe(this.$refs.inpArea)
 				}
+				this.getFldH();
 			},250)
 			if(this.$refs.fldCont && this.$refs.inpCont) {
 				setTimeout( () => {
@@ -1297,17 +1299,38 @@
 				for(let ind of [1,2,3]) {
 					let id = this['iconPrefix'+ind].id ?? this['iconPrefix'+ind]
 					if(id.length>0) {
-						this['iconPrefix'+ind+"HTML"] = document.getElementById(id) ? document.getElementById(id).innerHTML : ""
+						this.renderIcon(this, 'iconPrefix'+ind)
+						this.watchIcon('iconPrefix'+ind)
 					}
 				}
 				for(let ind of [1,2,3]) {
 					let id = this['iconSuffix'+ind].id ?? this['iconSuffix'+ind]
 					if(id.length>0) {
-						this['iconSuffix'+ind+"HTML"] = document.getElementById(id) ? document.getElementById(id).innerHTML : ""
+						this.renderIcon(this, 'iconSuffix'+ind)
+						this.watchIcon('iconSuffix'+ind)
 					}
 				}
-				if((this.iconClear.id ?? this.iconClear).length>0)
-				this.iconClearHTML = document.getElementById( (this.iconClear.id ?? this.iconClear) ) ? document.getElementById( (this.iconClear.id ?? this.iconClear) ).innerHTML : ""
+				this.renderIcon(this, 'iconClear')
+				this.watchIcon('iconClear')
+			},
+			watchIcon(varName) {
+				let self = this;
+				if(!(self[varName].id ?? self[varName])) return;
+				if(!document.getElementById( (self[varName].id ?? self[varName]) )) return;
+				(new MutationObserver(function(mutations) {
+					let mutate = false;
+					for(let mutation of mutations) 
+						if(mutation.oldValue !== mutation.target.textContent) {
+							mutate = true;
+							break;
+						}
+					if (mutate) self.renderIcon(self, varName)
+				})).observe(document.getElementById( (self[varName].id ?? self[varName]) ), { characterDataOldValue: true, subtree: true, childList: true, characterData: true })
+			},
+			renderIcon(self, varName) {
+				if(!(self[varName].id ?? self[varName])) return;
+				if(!document.getElementById( (self[varName].id ?? self[varName]) )) return;
+				self[varName+'HTML'] = document.getElementById( (self[varName].id ?? self[varName]) ) ? document.getElementById( (self[varName].id ?? self[varName]) ).innerHTML : ""
 			},
 		},
 		template:
@@ -1371,7 +1394,7 @@
 									 v-bind:readonly="readOnly"
 									 v-bind:maxlength="maxLen"
 									 v-bind:placeholder="inputValue.length === 0 && hasFocus ? placeholder : ''"
-									 v-on:keyup="sendInput($refs.inp, $event)"
+									 v-on:keyup="sendInput($refs.inpFld, $event)"
 									 v-on:click="sendClick()"
 									 v-on:focus="hasFocus=true"
 									 v-on:blur="hasFocus=false"
@@ -1388,7 +1411,7 @@
 										  v-bind:readonly="readOnly"
 										  v-bind:maxlength="maxLen"
 										  v-bind:placeholder="inputValue.length === 0 && hasFocus ? placeholder : ''"
-										  v-on:keyup="sendInput($refs.inp, $event)"
+										  v-on:keyup="sendInput($refs.inpArea, $event)"
 										  v-on:click="sendClick()"
 										  v-on:focus="hasFocus=true"
 										  v-on:blur="hasFocus=false"
@@ -1400,11 +1423,10 @@
 				</div>
 				<!--suffixtext-->
 				<span ref="sufTxt" v-show="suffixText.length>0" v-text="suffixText"></span>
-				<!--loader-->
 				<!--clear-->
 				<div v-show="inputValue.length>0 && !readOnly" 
-						 v-bind:class="{'-ml-[2em]':isArea}"
-						 class="w-[2em] h-full flex items-center justify-center">
+						 v-bind:class="{'-ml-[2em]':isArea, '-translate-x-[1em]': autocomplete.length>0}"
+						 class="w-[2em] h-full flex items-center justify-center transform">
 					<div v-on:click="resetInput()" 
 							 class="z-20 w-full h-[2em] flex items-center justify-center cursor-pointer">
 						<div v-show="(iconClear.id ?? iconClear).length>0" v-html="iconClearHTML"></div>
@@ -1415,6 +1437,13 @@
 								<div class="w-full border-b border-current w-[0.75em] h-0 transform -rotate-45 -translate-y-px"></div>
 							</div>
 						</div>
+					</div>
+				</div>
+				<!-- Autocomplete Dropdown arrow -->
+				<div v-if="autocomplete.length>0">
+					<div class="h-full w-[1em] min-w-[1em] -ml-[1em] flex items-center justify-center">
+						<div class="w-[0.5em] h-[0.5em] border-r-[0.5em] border-t-[0.5em] transform rotate-45 -translate-y-[0.125em]" 
+								 style="border-right-color:currentColor; border-top-color: transparent"></div>
 					</div>
 				</div>
 				<!--Suffix-Chiplist-->
