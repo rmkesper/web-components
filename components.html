@@ -1186,7 +1186,7 @@
 						Hello Tip
 					</div>
 								
-					<div class="underline decoration-dotted decoration-sky-400 text-black dark:text-white h-[fit-content]" data-tip="I am default with much text to wrap around" data-tip-wrap="25">
+					<div class="ml-4 underline decoration-dotted decoration-sky-400 text-black dark:text-white h-[fit-content]" data-tip="I am default with much text to wrap around" data-tip-wrap="25">
 						Hello Long Tip
 					</div>
 				
@@ -2192,6 +2192,7 @@ class ToolTip {
 		let _css = this.css
 		let e = event.target
 		let attr = e.getAttribute("data-tip")
+		let wrp = e.getAttribute("data-tip-wrap") ?? -1
 		let txt = attr.charAt(0) === "#" ? document.getElementById(attr.substr(1))?.innerHTML : attr
 		let id = e.getAttribute("data-tip-id")
 		if(document.getElementById(id)) {
