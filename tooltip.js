@@ -64,6 +64,7 @@ class ToolTip {
 		let _css = this.css
 		let e = event.target
 		let attr = e.getAttribute("data-tip")
+		let wrp = e.getAttribute("data-tip-wrap") ?? -1
 		if(attr.length===0) return
 		let txt = attr.charAt(0) === "#" ? document.getElementById(attr.substr(1))?.innerHTML : attr
 		let id = e.getAttribute("data-tip-id")
@@ -83,6 +84,20 @@ class ToolTip {
 		n.setAttribute("id", id)
 		if(txt.indexOf("class")<0 && txt.indexOf("style")<0) {
 			n.setAttribute("class", _css + (txt.indexOf("<")<0 ? ' flex items-center ' : ''))
+		}		
+		if(wrp > 0) {
+			let expl = txt.split(" ")
+			let _t = ""
+			let _txt = ""
+			for(let e of expl) {
+				_t += e + " "
+				_txt += e + " "
+				if(_t.length >= wrp) {
+					_txt += "\n"
+					_t = ""	
+				}
+			}
+			txt = _txt.trim().split("\n").join("<br>")
 		}
 		n.classList.add("fixed")
 		n.classList.add("opacity-0")
