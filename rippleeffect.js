@@ -63,8 +63,8 @@ class RippleEffect {
 			transform: translate3d(0, 0, 0);
 			background-repeat: no-repeat;
 			background-color: transparent;
-			width: 100%;
-			height: 100%;
+			width: var(--rpl-bg-w);
+			height: var(--rpl-bg-h);
 			top: calc(50% - var(--rpl-top));
 			left: calc(50% - var(--rpl-left));
 			background-size: calc(var(--rpl-max) * var(--rpl-scl-start)) calc(var(--rpl-max) * var(--rpl-scl-start));
@@ -133,6 +133,17 @@ class RippleEffect {
 		let id = "_" + (new Date()).getTime() + Math.floor(Math.random()*9999)
 		// clear last animation
 		p.style.setProperty('--rpl-scl-start', 0)
+		let scx = 1
+		let scy = 1
+		let trns = window.getComputedStyle(p).getPropertyValue('transform')
+		if(trns.indexOf("matrix")>=0){
+			let explt = trns.split("matrix(")
+			let exp = (explt[1] ?? "").split(")")[0].split(",")
+			if(exp.length>0){
+				scx = parseFloat(exp[0])
+				scy = parseFloat(exp[3] ?? "1")
+			}
+		}
 		// check if selected ripple parent is at not the 'static' position value
 		if(window.getComputedStyle(p).getPropertyValue('position').trim().toLocaleLowerCase() === 'static')
 			p.style.setProperty('position', 'relative')
@@ -178,6 +189,8 @@ class RippleEffect {
 		p.style.setProperty('--rpl-opacity-start', opacityStart)
 		p.style.setProperty('--rpl-opacity-end', _.rippleOpacityEnd)
 		p.style.setProperty('--rpl-ani-duration', `${rippleDuration}s`)
+		p.style.setProperty('--rpl-bg-w', `calc( 100% * ${scx} )`)
+		p.style.setProperty('--rpl-bg-h', `calc( 100% * ${scy} )`)
 		p.style.setProperty('--rpl-url', `url(${dataURL}`)
 		p.style.setProperty('--rpl-dx', `${dx}px`)
 		p.style.setProperty('--rpl-dy', `${dy}px`)
