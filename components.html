@@ -1185,6 +1185,10 @@
 					<div class="underline decoration-dotted decoration-sky-400 text-black dark:text-white h-[fit-content]" data-tip="I am default">
 						Hello Tip
 					</div>
+								
+					<div class="underline decoration-dotted decoration-sky-400 text-black dark:text-white h-[fit-content]" data-tip="I am default with much text to wrap around" data-tip-wrap="25">
+						Hello Long Tip
+					</div>
 				
 					<div class="ml-4 underline decoration-dotted decoration-sky-400 text-black dark:text-white h-[fit-content]" 
 							 data-tip="I have nice custom CSS" data-tip-pos="left" data-tip-css="bg-sky-500/90 text-white text-xs px-2 py-1 rounded-sm shadow truncate">
@@ -2206,6 +2210,20 @@ class ToolTip {
 		n.setAttribute("id", id)
 		if(txt.indexOf("class")<0 && txt.indexOf("style")<0) {
 			n.setAttribute("class", _css + (txt.indexOf("<")<0 ? ' flex items-center ' : ''))
+		}
+		if(wrp > 0) {
+			let expl = txt.split(" ")
+			let _t = ""
+			let _txt = ""
+			for(let e of expl) {
+				_t += e + " "
+				_txt += e + " "
+				if(_t.length >= wrp) {
+					_txt += "\n"
+					_t = ""	
+				}
+			}
+			txt = _txt.trim().split("\n").join("<br>")
 		}
 		n.classList.add("fixed")
 		n.classList.add("opacity-0")
