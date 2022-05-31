@@ -68,9 +68,11 @@ class ToolTip {
 		if(attr.length===0) return
 		let txt = attr.charAt(0) === "#" ? document.getElementById(attr.substr(1))?.innerHTML : attr
 		let id = e.getAttribute("data-tip-id")
-		if(document.getElementById(id)) {
-			document.getElementById(id).remove()
-		}
+		let tps = document.querySelectorAll('[data-tip-id]')
+		tps.forEach( t => {
+	      		let _id = t.getAttribute("data-tip-id") ?? ""
+	      		if(_id !== "" && document.getElementById(_id)) document.getElementById(_id).remove()
+	    	})
 		if(e.getAttribute("data-tip-css")) _css = e.getAttribute("data-tip-css")
 		let pos = e.getAttribute("data-tip-pos") ?? "top"
 		let off = parseInt( e.getAttribute("data-tip-offset") ?? "10" )
