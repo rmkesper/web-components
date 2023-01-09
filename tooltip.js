@@ -16,18 +16,30 @@ class ToolTip {
 			document.addEventListener("mouseup", function() { self.interactDown = false });
 			document.addEventListener("mousemove", function() {
 				if(!self.interactDown) return
-				for(let e of document.querySelectorAll("[data-tip-id]")) {
-					if(document.getElementById(e.getAttribute("data-tip-id")))
-						document.getElementById(e.getAttribute("data-tip-id")).remove()
+				let oth = document.querySelectorAll(".data-tip-itm")
+				if(oth.length>0) {
+				  setTimeout(() => {
+					for (let n in oth) {
+					  let e = oth[n]
+					  if (e && e.remove)
+						e.remove()
+					}
+				  }, 250)
 				}
 			});
 			document.addEventListener("touchstart", function() { self.interactDown = true });
 			document.addEventListener("touchend", function() { self.interactDown = false });
 			document.addEventListener("touchmove", function() {
 				if(!self.interactDown) return
-				for(let e of document.querySelectorAll("[data-tip-id]")) {
-					if(document.getElementById(e.getAttribute("data-tip-id")))
-						document.getElementById(e.getAttribute("data-tip-id")).remove()
+				let oth = document.querySelectorAll(".data-tip-itm")
+				if(oth.length>0) {
+				  setTimeout(() => {
+					for (let n in oth) {
+					  let e = oth[n]
+					  if (e && e.remove)
+						e.remove()
+					}
+				  }, 250)
 				}
 			});
 			(new MutationObserver(function(mutations) {
@@ -65,6 +77,7 @@ class ToolTip {
 		let e = event.target
 		let attr = e.getAttribute("data-tip")
 		let wrp = e.getAttribute("data-tip-wrap") ?? -1
+		if(!attr) return
 		if(attr.length===0) return
 		let txt = attr.charAt(0) === "#" ? document.getElementById(attr.substr(1))?.innerHTML : attr
 		let id = e.getAttribute("data-tip-id")
@@ -104,6 +117,7 @@ class ToolTip {
 		n.classList.add("fixed")
 		n.classList.add("opacity-0")
 		n.classList.add("transition-opacity")
+		n.classList.add("data-tip-itm")
 		n.innerHTML = txt
 		n.style.setProperty("top", 0 + "px")
 		n.style.setProperty("left", 0 + "px")
